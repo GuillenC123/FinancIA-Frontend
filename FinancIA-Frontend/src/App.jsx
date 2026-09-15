@@ -28,6 +28,23 @@ const movimientos = [
 
 function App() {
   const [activeView, setActiveView] = useState('inicio')
+  const [modal, setModal] = useState(null)
+  const [toast, setToast] = useState('')
+
+  const showToast = (message) => {
+    setToast(message)
+    window.setTimeout(() => setToast(''), 2800)
+  }
+
+  const openNewConsultation = () => setModal({ type: 'consultation' })
+
+  const openDetails = (title, content) => setModal({ type: 'details', title, content })
+
+  const handleConsultation = (question) => {
+    setModal(null)
+    setActiveView('asistente')
+    showToast(`Consulta preparada: ${question}`)
+  }
 
   return (
     <div className="app-shell">
@@ -40,7 +57,7 @@ function App() {
           </div>
         </div>
 
-        <button className="primary-button" type="button">
+        <button className="primary-button" type="button" onClick={openNewConsultation}>
           <span>＋</span> Nueva Consulta
         </button>
 
@@ -68,16 +85,28 @@ function App() {
       </aside>
 
       <main className="content-panel">
-        {activeView === 'inicio' && <DashboardView />}
-        {activeView === 'movimientos' && <MovimientosView />}
-        {activeView === 'asistente' && <AsistenteView />}
-        {activeView === 'metas' && <MetasView />}
+        {activeView === 'inicio' && <DashboardView onOpenDetails={openDetails} />}
+        {activeView === 'movimientos' && <MovimientosView onNotify={showToast} />}
+        {activeView === 'asistente' && <AsistenteView onConsult={handleConsultation} />}
+        {activeView === 'metas' && <MetasView onOpenDetails={openDetails} onNotify={showToast} />}
       </main>
+
+      {modal?.type === 'consultation' && (
+        <ConsultationModal onClose={() => setModal(null)} onSubmit={handleConsultation} />
+      )}
+      {modal?.type === 'details' && (
+        <DetailsModal
+          title={modal.title}
+          content={modal.content}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {toast && <div className="toast-message">{toast}</div>}
     </div>
   )
 }
 
-function DashboardView() {
+function DashboardView({ onOpenDetails }) {
   return (
     <>
       <header className="welcome-block">
@@ -136,13 +165,29 @@ function DashboardView() {
             en comparación con el mes pasado. Si mantienes este ritmo, alcanzarás tu meta de ahorro para el viaje de los sueños.
           </p>
         </div>
-        <button type="button">Ver detalles</button>
+        <button
+          type="button"
+          onClick={() => onOpenDetails(
+            'Análisis de tus gastos',
+            'Tu categoría Comida bajó 15% frente al mes anterior. Si mantienes este ritmo, puedes reservar S/ 300 adicionales para tu meta de Viaje a Cusco.',
+          )}
+        >
+          Ver detalles
+        </button>
       </section>
     </>
   )
 }
 
-function MovimientosView() {
+function MovimientosView({ onNotify }) {
+  const [filter, setFilter] = useState('all')
+  const [account, setAccount] = useState('all')
+  const filteredMovimientos = movimientos.filter((item) => {
+    const matchesType = filter === 'all' || item.type === filter
+    const matchesAccount = account === 'all' || item.detail.toLowerCase().includes(account)
+    return matchesType && matchesAccount
+  })
+
   return (
     <>
       <header className="page-header">
@@ -152,19 +197,19 @@ function MovimientosView() {
 
       <section className="filters-bar">
         <div className="filter-row">
-          <button type="button" className="filter-chip active">Todo</button>
-          <button type="button" className="filter-chip">↗ Solo lo que gané</button>
-          <button type="button" className="filter-chip">↘ Solo lo que gasté</button>
+          <button type="button" className={`filter-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Todo</button>
+          <button type="button" className={`filter-chip ${filter === 'income' ? 'active' : ''}`} onClick={() => setFilter('income')}>↗ Solo lo que gané</button>
+          <button type="button" className={`filter-chip ${filter === 'expense' ? 'active' : ''}`} onClick={() => setFilter('expense')}>↘ Solo lo que gasté</button>
         </div>
 
         <div className="select-row">
-          <select defaultValue="mayo">
+          <select defaultValue="mayo" onChange={() => onNotify('El periodo seleccionado se aplicará al conectar la API.') }>
             <option value="mayo">Mayo</option>
             <option value="abril">Abril</option>
             <option value="marzo">Marzo</option>
           </select>
-          <select defaultValue="todas">
-            <option value="todas">Todas las Cuentas</option>
+          <select value={account} onChange={(event) => setAccount(event.target.value)}>
+            <option value="all">Todas las Cuentas</option>
             <option value="banco">Banco</option>
             <option value="billetera">Billetera</option>
             <option value="yape">Yape</option>
@@ -174,7 +219,7 @@ function MovimientosView() {
 
       <section className="transactions-block">
         <h3>Hoy</h3>
-        {movimientos.map((item) => (
+        {filteredMovimientos.map((item) => (
           <article key={item.id} className="transaction-row">
             <div className="transaction-main">
               <div className={`transaction-icon ${item.type}`}>
@@ -188,6 +233,10 @@ function MovimientosView() {
             <div className={`amount ${item.type}`}>{item.amount}</div>
           </article>
         ))}
+
+        {filteredMovimientos.length === 0 && (
+          <div className="empty-state">No hay movimientos que coincidan con este filtro.</div>
+        )}
 
         <h3 className="group-label">Ayer</h3>
         <article className="transaction-row">
@@ -205,7 +254,9 @@ function MovimientosView() {
   )
 }
 
-function AsistenteView() {
+function AsistenteView({ onConsult }) {
+  const [selectedQuestion, setSelectedQuestion] = useState('¿Cómo van mis gastos esta semana?')
+
   return (
     <>
       <header className="chat-header">
@@ -217,7 +268,15 @@ function AsistenteView() {
         <h3>Preguntas rápidas</h3>
         <div className="question-grid">
           {quickQuestions.map((q, index) => (
-            <button key={q} className="question-card" type="button">
+            <button
+              key={q}
+              className={`question-card ${selectedQuestion === q ? 'selected' : ''}`}
+              type="button"
+              onClick={() => {
+                setSelectedQuestion(q)
+                onConsult(q)
+              }}
+            >
               <span className="question-icon">{index === 0 ? '📊' : index === 1 ? '💸' : '💻'}</span>
               <span>{q}</span>
             </button>
@@ -226,7 +285,7 @@ function AsistenteView() {
       </section>
 
       <section className="chat-box">
-        <div className="user-bubble">¿Cómo van mis gastos esta semana?</div>
+        <div className="user-bubble">{selectedQuestion}</div>
         <div className="assistant-row">
           <div className="assistant-avatar">🤖</div>
           <div className="assistant-card">
@@ -251,7 +310,7 @@ function AsistenteView() {
   )
 }
 
-function MetasView() {
+function MetasView({ onOpenDetails, onNotify }) {
   const metas = [
     {
       title: 'Viaje a Cusco',
@@ -326,7 +385,15 @@ function MetasView() {
 
             <div className="meta-footer">
               <small>{meta.progress}% completado</small>
-              <button type="button">Ver detalle</button>
+              <button
+                type="button"
+                onClick={() => onOpenDetails(
+                  meta.title,
+                  `Has alcanzado ${meta.progress}% de tu objetivo. Te faltan ${meta.amount.replace(meta.saved, '').trim()} para completar esta meta antes del ${meta.deadline}.`,
+                )}
+              >
+                Ver detalle
+              </button>
             </div>
           </article>
         ))}
@@ -337,9 +404,87 @@ function MetasView() {
           <h3>Plan recomendado</h3>
           <p>Asigna S/ 300 mensuales a tu meta de viaje para lograrla 2 meses antes de la fecha prevista.</p>
         </div>
-        <button type="button">Ajustar aporte</button>
+        <button type="button" onClick={() => onNotify('Puedes ajustar tu aporte mensual cuando conectemos tus cuentas reales.')}>Ajustar aporte</button>
       </section>
     </>
+  )
+}
+
+function ConsultationModal({ onClose, onSubmit }) {
+  const [question, setQuestion] = useState('')
+
+  const suggestions = [
+    '¿En qué estoy gastando más?',
+    '¿Cuánto puedo ahorrar esta semana?',
+    '¿Cómo avanzo con mis metas?',
+  ]
+
+  const submitQuestion = (event) => {
+    event.preventDefault()
+    if (question.trim()) onSubmit(question.trim())
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div className="modal-card consultation-modal" role="dialog" aria-modal="true" aria-labelledby="consultation-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div className="modal-icon">🤖</div>
+          <div>
+            <h2 id="consultation-title">Nueva consulta</h2>
+            <p>Pregunta algo sobre tus finanzas y recibe una orientación personalizada.</p>
+          </div>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar">×</button>
+        </div>
+
+        <form onSubmit={submitQuestion}>
+          <label htmlFor="consultation-input">¿Qué quieres analizar?</label>
+          <textarea
+            id="consultation-input"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Ejemplo: ¿Cómo puedo ahorrar más este mes?"
+            rows="4"
+            autoFocus
+          />
+          <div className="suggestion-list">
+            {suggestions.map((suggestion) => (
+              <button key={suggestion} type="button" onClick={() => setQuestion(suggestion)}>{suggestion}</button>
+            ))}
+          </div>
+          <div className="modal-actions">
+            <button className="secondary-button" type="button" onClick={onClose}>Cancelar</button>
+            <button className="modal-primary" type="submit" disabled={!question.trim()}>Analizar consulta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function DetailsModal({ title, content, onClose }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div className="modal-card details-modal" role="dialog" aria-modal="true" aria-labelledby="details-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div className="modal-icon">✦</div>
+          <div>
+            <h2 id="details-title">{title}</h2>
+            <p>Resumen generado con tus datos de ejemplo.</p>
+          </div>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar">×</button>
+        </div>
+        <div className="detail-highlight">
+          <span>Recomendación FinancIA</span>
+          <strong>{content}</strong>
+        </div>
+        <div className="details-list">
+          <div><span>Estado</span><strong>En buen camino</strong></div>
+          <div><span>Próxima revisión</span><strong>En 7 días</strong></div>
+          <div><span>Impacto estimado</span><strong className="positive-text">+ S/ 300</strong></div>
+        </div>
+        <button className="modal-primary full-width" type="button" onClick={onClose}>Entendido</button>
+      </div>
+    </div>
   )
 }
 
