@@ -182,6 +182,8 @@ function DashboardView({ onOpenDetails }) {
 function MovimientosView({ onNotify }) {
   const [filter, setFilter] = useState('all')
   const [account, setAccount] = useState('all')
+  const [month, setMonth] = useState('Mayo')
+  const [openMenu, setOpenMenu] = useState(null)
   const filteredMovimientos = movimientos.filter((item) => {
     const matchesType = filter === 'all' || item.type === filter
     const matchesAccount = account === 'all' || item.detail.toLowerCase().includes(account)
@@ -203,17 +205,52 @@ function MovimientosView({ onNotify }) {
         </div>
 
         <div className="select-row">
-          <select defaultValue="mayo" onChange={() => onNotify('El periodo seleccionado se aplicará al conectar la API.') }>
-            <option value="mayo">Mayo</option>
-            <option value="abril">Abril</option>
-            <option value="marzo">Marzo</option>
-          </select>
-          <select value={account} onChange={(event) => setAccount(event.target.value)}>
-            <option value="all">Todas las Cuentas</option>
-            <option value="banco">Banco</option>
-            <option value="billetera">Billetera</option>
-            <option value="yape">Yape</option>
-          </select>
+          <div className="select-control">
+            <span className="select-icon">▣</span>
+            <span className="select-label">Periodo</span>
+            <button className="select-trigger" type="button" onClick={() => setOpenMenu(openMenu === 'month' ? null : 'month')}>
+              {month}
+            </button>
+            <span className="select-chevron">⌄</span>
+            {openMenu === 'month' && (
+              <div className="select-menu">
+                {['Mayo', 'Abril', 'Marzo'].map((option) => (
+                  <button key={option} type="button" className={month === option ? 'selected' : ''} onClick={() => {
+                    setMonth(option)
+                    setOpenMenu(null)
+                    onNotify('El periodo seleccionado se aplicará al conectar la API.')
+                  }}>
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="select-control account-control">
+            <span className="select-icon">▤</span>
+            <span className="select-label">Cuenta</span>
+            <button className="select-trigger" type="button" onClick={() => setOpenMenu(openMenu === 'account' ? null : 'account')}>
+              {account === 'all' ? 'Todas las Cuentas' : account[0].toUpperCase() + account.slice(1)}
+            </button>
+            <span className="select-chevron">⌄</span>
+            {openMenu === 'account' && (
+              <div className="select-menu">
+                {[
+                  ['all', 'Todas las Cuentas'],
+                  ['banco', 'Banco'],
+                  ['billetera', 'Billetera'],
+                  ['yape', 'Yape'],
+                ].map(([value, label]) => (
+                  <button key={value} type="button" className={account === value ? 'selected' : ''} onClick={() => {
+                    setAccount(value)
+                    setOpenMenu(null)
+                  }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
