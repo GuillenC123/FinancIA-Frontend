@@ -5,9 +5,10 @@ type SidebarProps = {
   activeView: ViewId
   onChangeView: (view: ViewId) => void
   onNewConsultation: () => void
+  onLogout: () => void
 }
 
-export function Sidebar({ activeView, onChangeView, onNewConsultation }: SidebarProps) {
+export function Sidebar({ activeView, onChangeView, onNewConsultation, onLogout }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand-header">
@@ -36,13 +37,13 @@ export function Sidebar({ activeView, onChangeView, onNewConsultation }: Sidebar
         ))}
       </nav>
 
-      <div className="profile-box">
+      <button className="profile-box" type="button" onClick={onLogout} title="Cerrar sesión">
         <div className="avatar-mini">A</div>
         <div>
           <strong>Mi Perfil</strong>
           <small>Ajustes</small>
         </div>
-      </div>
+      </button>
     </aside>
   )
 }

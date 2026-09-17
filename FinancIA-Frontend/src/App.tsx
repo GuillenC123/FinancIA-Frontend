@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import './App.css'
+import { clearToken, getToken } from './api'
 import { Sidebar } from './components/Sidebar'
 import { ConsultationModal, DetailsModal } from './components/Modals'
+import { AuthView } from './pages/AuthView'
 import { AsistenteView } from './pages/AsistenteView'
 import { DashboardView } from './pages/DashboardView'
 import { MetasView } from './pages/MetasView'
@@ -9,6 +11,7 @@ import { MovimientosView } from './pages/MovimientosView'
 import type { ModalState, ViewId } from './types'
 
 function App() {
+  const [token, setToken] = useState<string | null>(() => getToken())
   const [activeView, setActiveView] = useState<ViewId>('inicio')
   const [modal, setModal] = useState<ModalState>(null)
   const [toast, setToast] = useState('')
@@ -28,12 +31,23 @@ function App() {
     setModal({ type: 'details', title, content })
   }
 
+  const logout = () => {
+    clearToken()
+    setToken(null)
+    setActiveView('inicio')
+  }
+
+  if (!token) {
+    return <AuthView onAuthenticated={setToken} />
+  }
+
   return (
     <div className="app-shell">
       <Sidebar
         activeView={activeView}
         onChangeView={setActiveView}
         onNewConsultation={() => setModal({ type: 'consultation' })}
+        onLogout={logout}
       />
 
       <main className="content-panel">
