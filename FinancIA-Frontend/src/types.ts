@@ -22,6 +22,7 @@ export type Goal = {
 export type ModalState =
   | { type: 'consultation' }
   | { type: 'details'; title: string; content: string }
+  | { type: 'security' }
   | null
 
 export type DetailModalProps = {
