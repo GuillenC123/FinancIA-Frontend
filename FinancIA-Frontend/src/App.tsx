@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import { clearToken, getToken } from './api'
 import { Sidebar } from './components/Sidebar'
-import { ConsultationModal, DetailsModal, SecurityModal } from './components/Modals'
+import { ConsultationModal, DetailsModal } from './components/Modals'
 import { AuthView } from './pages/AuthView'
 import { AsistenteView } from './pages/AsistenteView'
 import { DashboardView } from './pages/DashboardView'
@@ -47,7 +47,7 @@ function App() {
         activeView={activeView}
         onChangeView={setActiveView}
         onNewConsultation={() => setModal({ type: 'consultation' })}
-        onOpenSecurity={() => setModal({ type: 'security' })}
+        onLogout={logout}
       />
 
       <main className="content-panel">
@@ -62,9 +62,6 @@ function App() {
       )}
       {modal?.type === 'details' && (
         <DetailsModal title={modal.title} content={modal.content} onClose={() => setModal(null)} />
-      )}
-      {modal?.type === 'security' && (
-        <SecurityModal onClose={() => setModal(null)} onLogout={logout} onNotify={showToast} />
       )}
       {toast && <div className="toast-message">{toast}</div>}
     </div>

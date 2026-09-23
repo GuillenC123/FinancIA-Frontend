@@ -1189,38 +1189,6 @@ textarea:focus-visible {
   width: 100%;
 }
 
-.qr-step {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 18px;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #eef2ff, #f5f3ff);
-}
-
-.qr-step img {
-  width: 148px;
-  height: 148px;
-  border-radius: 12px;
-  background: #ffffff;
-  padding: 8px;
-}
-
-.qr-step ol {
-  margin: 0;
-  padding-left: 18px;
-  color: #374151;
-  line-height: 1.7;
-}
-
-@media (max-width: 520px) {
-  .qr-step {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
 .toast-message {
   position: fixed;
   right: 24px;

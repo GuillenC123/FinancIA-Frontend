@@ -24,14 +24,6 @@ export type AuthResponse = {
   token: string
 }
 
-export type TwoFactorSetupResponse = {
-  qrImage: string
-}
-
-export type MessageResponse = {
-  message: string
-}
-
 type BackendError = {
   message?: string
   errors?: Record<string, string>
@@ -91,16 +83,5 @@ export function verifyTwoFactor(preToken: string, code: string) {
   return request<AuthResponse>('/api/v1/auth/verify-2fa', {
     method: 'POST',
     body: JSON.stringify({ preToken, code }),
-  })
-}
-
-export function setupTwoFactor() {
-  return request<TwoFactorSetupResponse>('/api/v1/auth/2fa/setup', { method: 'POST' })
-}
-
-export function confirmTwoFactor(code: string) {
-  return request<MessageResponse>('/api/v1/auth/2fa/confirm', {
-    method: 'POST',
-    body: JSON.stringify({ code }),
   })
 }
