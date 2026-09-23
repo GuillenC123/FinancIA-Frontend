@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
-import { clearToken, getToken } from './api'
+import { clearToken, getCurrentUser, getToken, type CurrentUser } from './api'
 import { Sidebar } from './components/Sidebar'
 import { ConsultationModal, DetailsModal } from './components/Modals'
 import { AuthView } from './pages/AuthView'
@@ -15,6 +15,14 @@ function App() {
   const [activeView, setActiveView] = useState<ViewId>('inicio')
   const [modal, setModal] = useState<ModalState>(null)
   const [toast, setToast] = useState('')
+  const [user, setUser] = useState<CurrentUser | null>(null)
+
+  useEffect(() => {
+    if (!token) return
+    getCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null))
+  }, [token])
 
   const showToast = (message: string) => {
     setToast(message)
@@ -34,6 +42,7 @@ function App() {
   const logout = () => {
     clearToken()
     setToken(null)
+    setUser(null)
     setActiveView('inicio')
   }
 
@@ -48,6 +57,7 @@ function App() {
         onChangeView={setActiveView}
         onNewConsultation={() => setModal({ type: 'consultation' })}
         onLogout={logout}
+        user={user}
       />
 
       <main className="content-panel">

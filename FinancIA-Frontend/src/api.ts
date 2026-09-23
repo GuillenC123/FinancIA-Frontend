@@ -24,6 +24,14 @@ export type AuthResponse = {
   token: string
 }
 
+export type CurrentUser = {
+  name: string
+  lastName: string
+  email: string
+  status: string
+  role: string
+}
+
 type BackendError = {
   message?: string
   errors?: Record<string, string>
@@ -63,6 +71,10 @@ export function saveToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
+}
+
+export function getCurrentUser() {
+  return request<CurrentUser>('/api/v1/users/me')
 }
 
 export function registerUser(payload: RegisterPayload) {
