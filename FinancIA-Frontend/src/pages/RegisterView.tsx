@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { registerUser, saveToken } from '../api'
+import { registerUser, saveToken, saveTwoFactorEnabled } from '../api'
 
 type RegisterViewProps = {
   onAuthenticated: (token: string) => void
@@ -21,6 +21,7 @@ export function RegisterView({ onAuthenticated }: RegisterViewProps) {
     try {
       const response = await registerUser({ name, lastName, email, password, role: 'USER' })
       saveToken(response.token)
+      saveTwoFactorEnabled(false)
       onAuthenticated(response.token)
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'No se pudo conectar con el backend.')

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { loginUser, saveToken, verifyTwoFactor } from '../api'
+import { loginUser, saveToken, saveTwoFactorEnabled, verifyTwoFactor } from '../api'
 
 type LoginViewProps = {
   onAuthenticated: (token: string) => void
@@ -32,6 +32,7 @@ export function LoginView({ onAuthenticated, onTwoFactorChange, onBackToLogin }:
       if (requiresTwoFactor) {
         const response = await verifyTwoFactor(preToken, code)
         saveToken(response.token)
+        saveTwoFactorEnabled(true)
         onAuthenticated(response.token)
         return
       }
@@ -43,6 +44,7 @@ export function LoginView({ onAuthenticated, onTwoFactorChange, onBackToLogin }:
         setNotice('Revisa tu aplicación de autenticación e ingresa el código de 6 dígitos.')
       } else if (response.token) {
         saveToken(response.token)
+        saveTwoFactorEnabled(false)
         onAuthenticated(response.token)
       } else {
         throw new Error('El backend no devolvió un token válido.')

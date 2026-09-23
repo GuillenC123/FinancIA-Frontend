@@ -9,9 +9,19 @@ type SidebarProps = {
   onNewConsultation: () => void
   onLogout: () => void
   user: CurrentUser | null
+  twoFactorEnabled: boolean
+  onActivateTwoFactor: () => void
 }
 
-export function Sidebar({ activeView, onChangeView, onNewConsultation, onLogout, user }: SidebarProps) {
+export function Sidebar({
+  activeView,
+  onChangeView,
+  onNewConsultation,
+  onLogout,
+  user,
+  twoFactorEnabled,
+  onActivateTwoFactor,
+}: SidebarProps) {
   const fullName = user ? `${user.name} ${user.lastName}` : 'Mi Perfil'
   const initial = user?.name.charAt(0).toUpperCase() ?? 'A'
   const [menuOpen, setMenuOpen] = useState(false)
@@ -66,9 +76,26 @@ export function Sidebar({ activeView, onChangeView, onNewConsultation, onLogout,
       <div className="profile-area" ref={profileRef}>
         {menuOpen && (
           <div className="profile-menu" role="menu">
+            {twoFactorEnabled ? (
+              <button type="button" role="menuitem" className="menu-status" disabled>
+                ✓ Verificación en dos pasos activada
+              </button>
+            ) : (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onActivateTwoFactor()
+                }}
+              >
+                🔒 Activar verificación en dos pasos
+              </button>
+            )}
             <button
               type="button"
               role="menuitem"
+              className="danger"
               onClick={() => {
                 setMenuOpen(false)
                 onLogout()
