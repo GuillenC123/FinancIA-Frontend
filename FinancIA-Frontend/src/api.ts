@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 const TOKEN_KEY = 'financia_token'
+const TWO_FACTOR_KEY = 'financia_2fa'
 
 export type RegisterPayload = {
   name: string
@@ -24,6 +25,18 @@ export type AuthResponse = {
   token: string
 }
 
+export type TwoFactorSetupResponse = {
+  qrImage: string
+}
+
+export type CurrentUser = {
+  name: string
+  lastName: string
+  email: string
+  status: string
+  role: string
+}
+
 type BackendError = {
   message?: string
   errors?: Record<string, string>
@@ -46,8 +59,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 function getBackendError(payload: BackendError | null, status: number) {
-  if (payload?.errors) {
-    return Object.values(payload.errors).join(' ')
+  const errorValues = payload?.errors ? Object.values(payload.errors) : []
+  if (errorValues.length > 0) {
+    return errorValues.join(' ')
   }
   return payload?.message ?? `No se pudo completar la solicitud (${status}).`
 }
@@ -62,6 +76,20 @@ export function saveToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(TWO_FACTOR_KEY)
+}
+
+// El backend no expone si el 2FA esta activo, pero el login lo indica en requires2fa.
+export function getTwoFactorEnabled() {
+  return localStorage.getItem(TWO_FACTOR_KEY) === 'true'
+}
+
+export function saveTwoFactorEnabled(enabled: boolean) {
+  localStorage.setItem(TWO_FACTOR_KEY, String(enabled))
+}
+
+export function getCurrentUser() {
+  return request<CurrentUser>('/api/v1/users/me')
 }
 
 export function registerUser(payload: RegisterPayload) {
@@ -82,5 +110,16 @@ export function verifyTwoFactor(preToken: string, code: string) {
   return request<AuthResponse>('/api/v1/auth/verify-2fa', {
     method: 'POST',
     body: JSON.stringify({ preToken, code }),
+  })
+}
+
+export function setupTwoFactor() {
+  return request<TwoFactorSetupResponse>('/api/v1/auth/2fa/setup', { method: 'POST' })
+}
+
+export function confirmTwoFactor(code: string) {
+  return request<unknown>('/api/v1/auth/2fa/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
   })
 }
