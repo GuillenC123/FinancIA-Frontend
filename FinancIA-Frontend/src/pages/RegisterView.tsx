@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { CircleAlert, Info } from 'lucide-react'
 import { registerUser, saveToken, saveTwoFactorEnabled } from '../api'
 
 type RegisterViewProps = {
@@ -33,13 +34,13 @@ export function RegisterView({ onAuthenticated }: RegisterViewProps) {
   return (
     <form className="auth-form" onSubmit={submit}>
       <div className="auth-form-grid">
-        <label>Nombre<input value={name} onChange={(event) => setName(event.target.value)} required minLength={3} /></label>
-        <label>Apellido<input value={lastName} onChange={(event) => setLastName(event.target.value)} required minLength={3} /></label>
+        <label>Nombre<input value={name} onChange={(event) => setName(event.target.value)} required minLength={3} autoComplete="given-name" placeholder="Tu nombre" /></label>
+        <label>Apellido<input value={lastName} onChange={(event) => setLastName(event.target.value)} required minLength={3} autoComplete="family-name" placeholder="Tu apellido" /></label>
       </div>
-      <label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-      <label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} /></label>
-      <small className="password-hint">Usa 8 caracteres, mayúscula, minúscula, número y símbolo.</small>
-      {error && <div className="auth-feedback error">{error}</div>}
+      <label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" placeholder="tucorreo@ejemplo.com" /></label>
+      <label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} autoComplete="new-password" placeholder="Mínimo 8 caracteres" /></label>
+      <small className="password-hint"><Info size={14} strokeWidth={2} aria-hidden="true" />Usa al menos 8 caracteres, con mayúscula, minúscula, número y símbolo.</small>
+      {error && <div className="auth-feedback error" role="alert"><CircleAlert size={16} strokeWidth={2} aria-hidden="true" />{error}</div>}
       <button className="auth-submit" type="submit" disabled={loading}>
         {loading ? 'Creando cuenta...' : 'Crear cuenta y entrar'}
       </button>
