@@ -1,39 +1,131 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-  line-height: 1.5;
+  --ground: #f4f6f5;
+  --surface: #ffffff;
+  --surface-sunk: #eef2f0;
+  --ink: #14201e;
+  --ink-muted: #4a5955;
+  --ink-subtle: #5f6c68;
+  --line: #dde3e1;
+  --line-strong: #c5cfcb;
+  --petrol: #0f5f59;
+  --petrol-deep: #0b4a45;
+  --petrol-soft: #e4f0ee;
+  --petrol-ring: rgba(15, 95, 89, 0.22);
+  --income: #1e7a3a;
+  --income-soft: #e6f3ea;
+  --expense: #b42318;
+  --expense-soft: #fbebe9;
+  --chart-ochre: #b8802a;
+  --chart-stone: #aeb8b4;
+  --chart-muted: #c9dedb;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-dialog: 16px;
+
+  --shadow-contour: 0 0 0 1px rgba(20, 32, 30, 0.07), 0 1px 2px rgba(20, 32, 30, 0.04);
+  --shadow-float: 0 0 0 1px rgba(20, 32, 30, 0.06), 0 12px 32px -8px rgba(20, 32, 30, 0.18);
+  --shadow-dialog: 0 24px 64px -16px rgba(20, 32, 30, 0.35);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --font: 'Public Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
   font-weight: 400;
-  color: #1f2937;
-  background: #f3f0ff;
+  color: var(--ink);
+  background: var(--ground);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   color-scheme: light;
+  accent-color: var(--petrol);
+  caret-color: var(--petrol);
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   min-height: 100%;
   min-width: 0;
 }
 
 body {
-  min-height: 100vh;
-  background: #f3f0ff;
+  min-height: 100dvh;
+  background: var(--ground);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font);
+  text-wrap: balance;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+  color: inherit;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Manrope', 'Segoe UI', sans-serif;
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+::selection {
+  background: var(--petrol-soft);
+  color: var(--petrol-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--petrol);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }

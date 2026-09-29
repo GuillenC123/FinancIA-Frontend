@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ChartPie, MessageSquarePlus, ShieldCheck, X } from 'lucide-react'
 import { confirmTwoFactor, setupTwoFactor } from '../api'
 import type { DetailModalProps } from '../types'
+
+const CloseIcon = () => <X size={18} strokeWidth={2} aria-hidden="true" />
 
 type ConsultationModalProps = {
   onClose: () => void
@@ -21,12 +24,12 @@ export function ConsultationModal({ onClose, onSubmit }: ConsultationModalProps)
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div className="modal-card consultation-modal" role="dialog" aria-modal="true" aria-labelledby="consultation-title" onMouseDown={(event) => event.stopPropagation()}>
         <div className="modal-heading">
-          <div className="modal-icon">🤖</div>
+          <div className="modal-icon" aria-hidden="true"><MessageSquarePlus size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="consultation-title">Nueva consulta</h2>
             <p>Pregunta algo sobre tus finanzas y recibe una orientación personalizada.</p>
           </div>
-          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar">×</button>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
         <form onSubmit={submitQuestion}>
           <label htmlFor="consultation-input">¿Qué quieres analizar?</label>
@@ -102,12 +105,12 @@ export function TwoFactorModal({ onClose, onActivated, onAlreadyEnabled }: TwoFa
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div className="modal-card details-modal" role="dialog" aria-modal="true" aria-labelledby="twofactor-title" onMouseDown={(event) => event.stopPropagation()}>
         <div className="modal-heading">
-          <div className="modal-icon">🔒</div>
+          <div className="modal-icon" aria-hidden="true"><ShieldCheck size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="twofactor-title">Verificación en dos pasos</h2>
             <p>Además de tu contraseña, pediremos un código temporal al iniciar sesión.</p>
           </div>
-          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar">×</button>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
 
         <form onSubmit={confirmSetup}>
@@ -134,6 +137,8 @@ export function TwoFactorModal({ onClose, onActivated, onAlreadyEnabled }: TwoFa
             maxLength={6}
             required
             autoFocus
+            autoComplete="one-time-code"
+            placeholder="000000"
           />
 
           {error && <div className="auth-feedback error">{error}</div>}
@@ -155,12 +160,12 @@ export function DetailsModal({ title, content, onClose }: DetailModalProps) {
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div className="modal-card details-modal" role="dialog" aria-modal="true" aria-labelledby="details-title" onMouseDown={(event) => event.stopPropagation()}>
         <div className="modal-heading">
-          <div className="modal-icon">✦</div>
+          <div className="modal-icon" aria-hidden="true"><ChartPie size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="details-title">{title}</h2>
             <p>Resumen generado con tus datos de ejemplo.</p>
           </div>
-          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar">×</button>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
         <div className="detail-highlight">
           <span>Recomendación FinancIA</span>

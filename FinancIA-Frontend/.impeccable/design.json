@@ -1,0 +1,632 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T19:41:21.467Z",
+  "title": "Design System: FinancIA",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Fondo Niebla",
+        "canonical": "#f4f6f5",
+        "oklch": "oklch(97.1% 0.002 165.1)",
+        "tonalRamp": [
+          "#0a0c0b",
+          "#222523",
+          "#404342",
+          "#616463",
+          "#848785",
+          "#a9acaa",
+          "#cbcecd",
+          "#ecefee"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Blanco Superficie",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252422",
+          "#434240",
+          "#646361",
+          "#878683",
+          "#acaba8",
+          "#cfcecb",
+          "#efeeeb"
+        ]
+      },
+      "surface-sunk": {
+        "role": "neutral",
+        "displayName": "Superficie Hundida",
+        "canonical": "#eef2f0",
+        "oklch": "oklch(95.8% 0.005 165.0)",
+        "tonalRamp": [
+          "#090c0b",
+          "#222523",
+          "#404342",
+          "#616462",
+          "#838785",
+          "#a8acaa",
+          "#cbcfcd",
+          "#ebefed"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#14201e",
+        "oklch": "oklch(23.1% 0.017 183.3)",
+        "tonalRamp": [
+          "#040e0c",
+          "#1b2725",
+          "#384643",
+          "#596764",
+          "#7b8a87",
+          "#9fafac",
+          "#c2d2cf",
+          "#e3f3ef"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Tinta Apagada",
+        "canonical": "#4a5955",
+        "oklch": "oklch(45.0% 0.020 177.5)",
+        "tonalRamp": [
+          "#030e0b",
+          "#1a2724",
+          "#374642",
+          "#586763",
+          "#7a8a86",
+          "#9eafab",
+          "#c1d2cd",
+          "#e1f3ee"
+        ]
+      },
+      "ink-subtle": {
+        "role": "neutral",
+        "displayName": "Tinta Sutil",
+        "canonical": "#5f6c68",
+        "oklch": "oklch(51.9% 0.017 175.2)",
+        "tonalRamp": [
+          "#040e0b",
+          "#1b2724",
+          "#394542",
+          "#5a6763",
+          "#7c8a85",
+          "#a0aeaa",
+          "#c3d2cd",
+          "#e3f2ee"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Línea",
+        "canonical": "#dde3e1",
+        "oklch": "oklch(91.1% 0.007 174.4)",
+        "tonalRamp": [
+          "#080c0b",
+          "#212524",
+          "#3f4442",
+          "#5f6563",
+          "#828886",
+          "#a7acaa",
+          "#c9cfcd",
+          "#eaf0ee"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Línea Marcada",
+        "canonical": "#c5cfcb",
+        "oklch": "oklch(84.6% 0.012 170.2)",
+        "tonalRamp": [
+          "#060d0a",
+          "#1e2623",
+          "#3c4541",
+          "#5d6662",
+          "#7f8985",
+          "#a4adaa",
+          "#c6d0cc",
+          "#e7f1ed"
+        ]
+      },
+      "petrol": {
+        "role": "primary",
+        "displayName": "Verde Petróleo",
+        "canonical": "#0f5f59",
+        "oklch": "oklch(43.9% 0.072 187.0)",
+        "tonalRamp": [
+          "#000f0d",
+          "#022b28",
+          "#014d48",
+          "#27706a",
+          "#4e948d",
+          "#73bab2",
+          "#96ded6",
+          "#b7fff7"
+        ]
+      },
+      "petrol-deep": {
+        "role": "primary",
+        "displayName": "Petróleo Profundo",
+        "canonical": "#0b4a45",
+        "oklch": "oklch(37.1% 0.060 186.7)",
+        "tonalRamp": [
+          "#000f0d",
+          "#012b27",
+          "#0f4d48",
+          "#366e69",
+          "#5a928c",
+          "#7eb8b1",
+          "#a1dbd4",
+          "#c1fcf5"
+        ]
+      },
+      "petrol-soft": {
+        "role": "primary",
+        "displayName": "Petróleo Suave",
+        "canonical": "#e4f0ee",
+        "oklch": "oklch(94.6% 0.013 185.1)",
+        "tonalRamp": [
+          "#030e0c",
+          "#192725",
+          "#374644",
+          "#576765",
+          "#798a88",
+          "#9eafac",
+          "#c0d2cf",
+          "#e1f3f0"
+        ]
+      },
+      "petrol-ring": {
+        "role": "primary",
+        "displayName": "Anillo Petróleo",
+        "canonical": "rgba(15, 95, 89, 0.22)",
+        "oklch": "oklch(43.9% 0.072 187.0)",
+        "tonalRamp": [
+          "#000f0d",
+          "#022b28",
+          "#014d48",
+          "#27706a",
+          "#4e948d",
+          "#73bab2",
+          "#96ded6",
+          "#b7fff7"
+        ]
+      },
+      "income": {
+        "role": "semantic",
+        "displayName": "Ingreso",
+        "canonical": "#1e7a3a",
+        "oklch": "oklch(51.2% 0.129 149.1)",
+        "tonalRamp": [
+          "#001003",
+          "#002d0e",
+          "#035120",
+          "#197737",
+          "#459b59",
+          "#6bc17d",
+          "#8fe59f",
+          "#c8ffd0"
+        ]
+      },
+      "income-soft": {
+        "role": "semantic",
+        "displayName": "Ingreso Suave",
+        "canonical": "#e6f3ea",
+        "oklch": "oklch(95.2% 0.018 155.8)",
+        "tonalRamp": [
+          "#050e08",
+          "#1c2720",
+          "#3a463e",
+          "#5b675e",
+          "#7d8a81",
+          "#a1afa6",
+          "#c4d2c8",
+          "#e4f3e9"
+        ]
+      },
+      "expense": {
+        "role": "semantic",
+        "displayName": "Gasto",
+        "canonical": "#b42318",
+        "oklch": "oklch(50.0% 0.182 29.5)",
+        "tonalRamp": [
+          "#1f0000",
+          "#4b0000",
+          "#810300",
+          "#b42318",
+          "#de4f3f",
+          "#ff806e",
+          "#ffbaaf",
+          "#fee9e5"
+        ]
+      },
+      "expense-soft": {
+        "role": "semantic",
+        "displayName": "Gasto Suave",
+        "canonical": "#fbebe9",
+        "oklch": "oklch(95.2% 0.018 26.1)",
+        "tonalRamp": [
+          "#130807",
+          "#2d201f",
+          "#4d3e3d",
+          "#6e5f5d",
+          "#928280",
+          "#b7a6a4",
+          "#dbc9c7",
+          "#fceae7"
+        ]
+      },
+      "chart-ochre": {
+        "role": "chart",
+        "displayName": "Ocre",
+        "canonical": "#b8802a",
+        "oklch": "oklch(64.2% 0.120 73.5)",
+        "tonalRamp": [
+          "#130900",
+          "#331f01",
+          "#5b3b01",
+          "#875801",
+          "#b17921",
+          "#d89e4d",
+          "#fdc170",
+          "#feebd3"
+        ]
+      },
+      "chart-stone": {
+        "role": "chart",
+        "displayName": "Piedra",
+        "canonical": "#aeb8b4",
+        "oklch": "oklch(77.4% 0.012 170.2)",
+        "tonalRamp": [
+          "#030e0a",
+          "#1a2723",
+          "#384641",
+          "#586761",
+          "#7b8a84",
+          "#9fafa9",
+          "#c2d2cc",
+          "#e2f3ec"
+        ]
+      },
+      "chart-muted": {
+        "role": "chart",
+        "displayName": "Petróleo Apagado",
+        "canonical": "#c9dedb",
+        "oklch": "oklch(88.4% 0.023 186.4)",
+        "tonalRamp": [
+          "#010e0d",
+          "#172826",
+          "#354644",
+          "#556865",
+          "#778b88",
+          "#9cb0ad",
+          "#bed3d0",
+          "#def4f1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular del panel de bienvenida del acceso, máximo 14ch."
+      },
+      "display-compact": {
+        "displayName": "Display compact",
+        "purpose": "Titular del acceso por debajo de 860px."
+      },
+      "figure-lg": {
+        "displayName": "Figure large",
+        "purpose": "Las tres cifras del resumen de Inicio y de Metas."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "Título de cada vista; también cifras del resumen de Metas en móvil y el campo de código (600)."
+      },
+      "figure-md": {
+        "displayName": "Figure medium",
+        "purpose": "Monto ahorrado de cada meta; título de la tarjeta de acceso."
+      },
+      "page-title-compact": {
+        "displayName": "Page title compact",
+        "purpose": "Título de vista por debajo de 860px."
+      },
+      "figure-sm": {
+        "displayName": "Figure small",
+        "purpose": "Total en el centro de la dona y resumen de Inicio en filas en móvil."
+      },
+      "dialog-title": {
+        "displayName": "Dialog title",
+        "purpose": "Título de los modales."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Párrafo de bienvenida del acceso; nombre de la marca en 700."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de tarjeta y de sección; campos de texto en pantallas táctiles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corriente, navegación y botones (600)."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Montos en filas y listas, alineados a la derecha."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de formulario, chips, menús, pestañas y notificaciones."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Metadatos, fechas, meses del gráfico y pistas."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Rótulo de selectores y etiqueta de la navegación inferior; el mínimo."
+      }
+    },
+    "shadows": [
+      {
+        "name": "contour",
+        "value": "0 0 0 1px rgba(20, 32, 30, 0.07), 0 1px 2px rgba(20, 32, 30, 0.04)",
+        "purpose": "Tarjetas, chips, selectores, tarjetas de pregunta y tarjeta de acceso en reposo; sustituye al borde."
+      },
+      {
+        "name": "float",
+        "value": "0 0 0 1px rgba(20, 32, 30, 0.06), 0 12px 32px -8px rgba(20, 32, 30, 0.18)",
+        "purpose": "Menús desplegables y notificaciones."
+      },
+      {
+        "name": "dialog",
+        "value": "0 24px 64px -16px rgba(20, 32, 30, 0.35)",
+        "purpose": "Modales, sobre un velo de tinta al 45 %."
+      },
+      {
+        "name": "focus-field",
+        "value": "0 0 0 3px rgba(15, 95, 89, 0.22)",
+        "purpose": "Halo de foco de campos de texto, junto al borde petróleo."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Curva única para entradas, menús, modales, notificaciones, chevron y pestaña deslizante."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(0.98) 120ms ease-out",
+        "purpose": "Presionado de botones, chips y tarjetas de pregunta."
+      },
+      {
+        "name": "hover-color",
+        "value": "150ms ease",
+        "purpose": "Cambios de fondo, color, borde y sombra en hover."
+      },
+      {
+        "name": "view-in",
+        "value": "220ms ease-out; from opacity 0, translateY(4px)",
+        "purpose": "Entrada de cada bloque de vista."
+      },
+      {
+        "name": "pop-in",
+        "value": "160ms ease-out; from opacity 0, scale(0.97), transform-origin en el borde de anclaje",
+        "purpose": "Menú de perfil y menú de selector, desde su origen."
+      },
+      {
+        "name": "chevron-rotate",
+        "value": "160ms ease-out; rotate(180deg)",
+        "purpose": "Chevron del selector abierto."
+      },
+      {
+        "name": "dialog-in",
+        "value": "220ms ease-out; from opacity 0, scale(0.97) translateY(4px)",
+        "purpose": "Entrada de modal en escritorio; velo con fundido de 180ms."
+      },
+      {
+        "name": "sheet-in",
+        "value": "220ms ease-out; from opacity 0, translateY(24px)",
+        "purpose": "Entrada del modal como hoja inferior bajo 860px."
+      },
+      {
+        "name": "toast",
+        "value": "toast-in 240ms ease-out (translateY 8px); toast-out 200ms ease-out con retraso de 2600ms",
+        "purpose": "Notificación; la salida está sincronizada con el temporizador de 2.8s."
+      },
+      {
+        "name": "tab-slide",
+        "value": "transform 220ms ease-out",
+        "purpose": "Indicador único que se desliza bajo la pestaña activa del acceso."
+      },
+      {
+        "name": "row-fade",
+        "value": "160ms ease-out; from opacity 0",
+        "purpose": "Filas de movimientos al filtrar."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce)",
+        "purpose": "Solo fundidos: sin desplazamientos, escalas, rotación del chevron ni deslizamiento de pestaña."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1080px",
+        "purpose": "Por debajo: análisis y preguntas rápidas a una columna."
+      },
+      {
+        "name": "mobile",
+        "value": "860px",
+        "purpose": "Por debajo: barra superior, navegación inferior fija, resumen en libro de tres filas, modales como hoja."
+      },
+      {
+        "name": "narrow",
+        "value": "440px",
+        "purpose": "Por debajo: selectores apilados."
+      },
+      {
+        "name": "tiny",
+        "value": "380px",
+        "purpose": "Por debajo: Nueva consulta solo con icono."
+      },
+      {
+        "name": "touch",
+        "value": "(pointer: coarse)",
+        "purpose": "Campos de texto a 16px para evitar el zoom de iOS."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal: petróleo sólido con texto blanco.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Guardar meta</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: var(--radius-control, 8px); background: var(--petrol, #0f5f59); color: #fff; font: 600 0.9375rem/1 'Public Sans', 'Segoe UI', system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease-out; } .ds-btn-primary:hover { background: var(--petrol-deep, #0b4a45); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--petrol, #0f5f59); outline-offset: 2px; } .ds-btn-primary:disabled { background: var(--surface-sunk, #eef2f0); color: var(--ink-subtle, #5f6c68); cursor: not-allowed; }"
+    },
+    {
+      "name": "Botón secundario / Nueva consulta",
+      "kind": "button",
+      "refersTo": "button-new-consultation",
+      "description": "Contorneado en línea marcada, texto tinta e icono petróleo; así es Nueva consulta.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Nueva consulta</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid var(--line-strong, #c5cfcb); border-radius: var(--radius-control, 8px); background: var(--surface, #fff); color: var(--ink, #14201e); font: 600 0.9375rem/1 'Public Sans', 'Segoe UI', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease-out; } .ds-btn-secondary svg { color: var(--petrol, #0f5f59); } .ds-btn-secondary:hover { background: var(--surface-sunk, #eef2f0); border-color: var(--ink-subtle, #5f6c68); } .ds-btn-secondary:active { transform: scale(0.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--petrol, #0f5f59); outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Etiqueta encima, borde línea marcada, foco con borde y halo petróleo.",
+      "html": "<label class=\"ds-field\">Nombre de la meta<input class=\"ds-input\" placeholder=\"Ej. Viaje a Cusco\"></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font: 500 0.875rem/1.35 'Public Sans', 'Segoe UI', system-ui, sans-serif; color: var(--ink, #14201e); } .ds-input { height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong, #c5cfcb); border-radius: var(--radius-control, 8px); background: var(--surface, #fff); color: var(--ink, #14201e); font: 400 0.9375rem/1.4 'Public Sans', 'Segoe UI', system-ui, sans-serif; transition: border-color 150ms ease, box-shadow 150ms ease; } .ds-input::placeholder { color: var(--ink-subtle, #5f6c68); } .ds-input:focus { outline: none; border-color: var(--petrol, #0f5f59); box-shadow: 0 0 0 3px var(--petrol-ring, rgba(15, 95, 89, 0.22)); }"
+    },
+    {
+      "name": "Navegación",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Ítems de 40px; el activo en relleno petróleo suave, sin indicador lateral.",
+      "html": "<nav class=\"ds-nav\"><button class=\"ds-nav-item active\" type=\"button\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10.5 12 3l9 7.5\"/><path d=\"M5 9.5V21h14V9.5\"/></svg>Inicio</button><button class=\"ds-nav-item\" type=\"button\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 6h13\"/><path d=\"M8 12h13\"/><path d=\"M8 18h13\"/><path d=\"M3 6h.01\"/><path d=\"M3 12h.01\"/><path d=\"M3 18h.01\"/></svg>Movimientos</button></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 2px; width: 224px; } .ds-nav-item { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border: 0; border-radius: var(--radius-control, 8px); background: transparent; color: var(--ink-muted, #4a5955); font: 500 0.9375rem/1 'Public Sans', 'Segoe UI', system-ui, sans-serif; text-align: left; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; } .ds-nav-item:not(.active):hover { background: var(--surface-sunk, #eef2f0); color: var(--ink, #14201e); } .ds-nav-item.active { background: var(--petrol-soft, #e4f0ee); color: var(--petrol, #0f5f59); font-weight: 600; } .ds-nav-item:focus-visible { outline: 2px solid var(--petrol, #0f5f59); outline-offset: 2px; }"
+    },
+    {
+      "name": "Chips de filtro",
+      "kind": "chip",
+      "refersTo": "chip-active",
+      "description": "Píldoras con contorno; la activa en petróleo sólido.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip active\" type=\"button\">Todos</button><button class=\"ds-chip\" type=\"button\">Solo lo que gané</button></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; } .ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--surface, #fff); box-shadow: var(--shadow-contour, 0 0 0 1px rgba(20,32,30,0.07), 0 1px 2px rgba(20,32,30,0.04)); color: var(--ink-muted, #4a5955); font: 500 0.875rem/1 'Public Sans', 'Segoe UI', system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: background-color 150ms ease, color 150ms ease, transform 120ms ease-out; } .ds-chip:not(.active):hover { background: var(--surface-sunk, #eef2f0); color: var(--ink, #14201e); } .ds-chip:active { transform: scale(0.98); } .ds-chip.active { background: var(--petrol, #0f5f59); box-shadow: none; color: #fff; } .ds-chip:focus-visible { outline: 2px solid var(--petrol, #0f5f59); outline-offset: 2px; }"
+    },
+    {
+      "name": "Tarjeta de cifra",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Etiqueta, cifra tabular y metadato sobre blanco con contorno.",
+      "html": "<div class=\"ds-card\"><span>Gasté este mes</span><strong>S/ 1,240.50</strong><small>12 movimientos</small></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: var(--radius-card, 12px); background: var(--surface, #fff); box-shadow: var(--shadow-contour, 0 0 0 1px rgba(20,32,30,0.07), 0 1px 2px rgba(20,32,30,0.04)); font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif; color: var(--ink, #14201e); } .ds-card span { font-size: 0.875rem; font-weight: 500; color: var(--ink-muted, #4a5955); } .ds-card strong { font-size: 1.75rem; font-weight: 650; line-height: 1.1; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-card small { font-size: 0.8125rem; color: var(--ink-subtle, #5f6c68); }"
+    },
+    {
+      "name": "Tarjeta acentuada",
+      "kind": "card",
+      "refersTo": "card-accent",
+      "description": "La única cifra acentuada de la vista: petróleo sólido con texto blanco.",
+      "html": "<div class=\"ds-card-accent\"><span>Queda para ahorrar</span><strong>S/ 860.00</strong></div>",
+      "css": ".ds-card-accent { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: var(--radius-card, 12px); background: var(--petrol, #0f5f59); color: #fff; font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif; } .ds-card-accent span { font-size: 0.875rem; font-weight: 500; color: rgba(255, 255, 255, 0.86); } .ds-card-accent strong { font-size: 1.75rem; font-weight: 650; line-height: 1.1; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; white-space: nowrap; }"
+    },
+    {
+      "name": "Análisis del asistente",
+      "kind": "custom",
+      "refersTo": "assistant-surface",
+      "description": "Superficie petróleo suave con el monograma F como voz del asistente.",
+      "html": "<div class=\"ds-insight\"><div class=\"ds-mono\" aria-hidden=\"true\">F</div><div><h4>Tu gasto en comida subió</h4><p>Este mes llevas <strong>S/ 420.00</strong> en restaurantes, 18 % más que el anterior.</p></div><button type=\"button\">Ver plan</button></div>",
+      "css": ".ds-insight { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 20px; border-radius: var(--radius-card, 12px); background: var(--petrol-soft, #e4f0ee); font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif; } .ds-mono { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--petrol, #0f5f59); color: #fff; font-weight: 700; font-size: 0.9375rem; } .ds-insight h4 { margin: 0 0 4px; font-size: 1rem; font-weight: 600; color: var(--ink, #14201e); } .ds-insight p { margin: 0; font-size: 0.9375rem; color: var(--ink-muted, #4a5955); } .ds-insight p strong { color: var(--ink, #14201e); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-insight button { height: 40px; padding: 0 16px; border: 0; border-radius: var(--radius-control, 8px); background: var(--petrol, #0f5f59); color: #fff; font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease-out; } .ds-insight button:hover { background: var(--petrol-deep, #0b4a45); } .ds-insight button:active { transform: scale(0.98); } .ds-insight button:focus-visible { outline: 2px solid var(--petrol, #0f5f59); outline-offset: 2px; }"
+    },
+    {
+      "name": "Fila de movimiento",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Anatomía de Cifras: icono, concepto con metadato y monto con signo y color semántico.",
+      "html": "<div class=\"ds-row\"><div class=\"ds-row-main\"><span class=\"ds-row-icon\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M17 7 7 17\"/><path d=\"M17 17H7V7\"/></svg></span><div><strong>Sueldo</strong><small>28 sep · Cuenta sueldo</small></div></div><span class=\"ds-amount\">+S/ 3,200.00</span></div>",
+      "css": ".ds-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif; color: var(--ink, #14201e); } .ds-row-main { display: flex; align-items: center; gap: 12px; } .ds-row-main strong, .ds-row-main small { display: block; } .ds-row-main strong { font-size: 0.9375rem; font-weight: 600; } .ds-row-main small { font-size: 0.8125rem; color: var(--ink-subtle, #5f6c68); } .ds-row-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--income-soft, #e6f3ea); color: var(--income, #1e7a3a); } .ds-amount { font-size: 0.9375rem; font-weight: 600; color: var(--income, #1e7a3a); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El libro contable tranquilo",
+    "overview": "FinancIA maneja el dinero de personas que no son expertas y que desconfían de lo que parece un juguete. La interfaz se comporta como un buen libro contable: ordenada, predecible y sin adornos, para que las cifras se lean primero y se crean. Todo lo que no ayuda a leer un monto o a tomar una decisión se retira.\n\nLa densidad es media: aire suficiente para una persona que revisa su plata en el bus, pero sin tarjetas decorativas ni gráficos de relleno. El color no decora; marca acción, estado, el signo del dinero y, una sola vez por vista, la cifra que importa. La marca es un monograma \"F\" sobre petróleo que también es la voz del asistente: donde habla FinancIA, aparece la F.\n\nSe rechaza expresamente la estética de plantilla SaaS violeta: degradados, brillos de color bajo los botones, halos radiales y emojis como iconos.",
+    "keyCharacteristics": [
+      "Un solo acento, verde petróleo, usado con moderación y en tres intensidades (sólido, profundo, suave).",
+      "Cifras tabulares alineadas en todas partes, y una sola cifra acentuada por vista.",
+      "Monograma \"F\" en petróleo como marca y como voz del asistente.",
+      "Iconos de línea lucide de un mismo grosor, nunca emojis.",
+      "Profundidad por sombras finas del tono de la tinta, no por bordes duros ni brillos.",
+      "Movimiento corto y de salida suave; con movimiento reducido, solo fundidos."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "El petróleo es el único color de acción. Si algo no es acción, estado activo, foco, progreso, la marca o la voz del asistente, no es petróleo.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Figure Rule",
+        "body": "Cada vista acentúa una sola cifra con petróleo sólido y texto blanco. Las demás tarjetas de cifras quedan en blanco.",
+        "section": "colors"
+      },
+      {
+        "name": "The Money Colors Rule",
+        "body": "Verde y rojo significan dinero que entra y dinero que sale. Nunca decoran, y nunca van solos: siempre los acompaña un signo (+/−) o un icono.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Gradient Rule",
+        "body": "Ningún fondo, botón ni icono usa degradados. Los colores son planos. La dona de gastos se dibuja con cortes duros de color; es un gráfico de datos, no un degradado.",
+        "section": "colors"
+      },
+      {
+        "name": "The Figures Win Rule",
+        "body": "En cualquier pantalla, la cifra clave pesa más que el título que la rodea.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ledger Rule",
+        "body": "Todo monto usa cifras tabulares y `white-space: nowrap`; un monto jamás se parte en dos líneas.",
+        "section": "typography"
+      },
+      {
+        "name": "The Quiet Label Rule",
+        "body": "Etiquetas y metadatos van en minúscula normal, sin mayúsculas forzadas ni tracking amplio. El único tracking amplio es el del campo de código, donde separa dígitos.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Glow Rule",
+        "body": "Ninguna sombra lleva color. Las sombras son siempre del tono de la tinta, nunca petróleo ni violeta. El contorno petróleo de una tarjeta de pregunta seleccionada es un borde de estado, no un brillo.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar `tabular-nums` y `nowrap` en todo monto.",
+      "**Do** acentuar una sola cifra por vista con petróleo sólido y texto blanco.",
+      "**Do** acompañar verde y rojo con un signo o un icono.",
+      "**Do** usar el monograma \"F\" en petróleo donde habla la marca o el asistente.",
+      "**Do** usar iconos de línea lucide de 1.75 de trazo (2 en glifos pequeños y funcionales: flechas, chevrons, \"+\", cerrar y alertas), entre 14 y 20px.",
+      "**Do** mantener un anillo de foco visible de 2px en petróleo.",
+      "**Do** llevar los campos a 16px en pantallas táctiles.",
+      "**Do** reducir el movimiento a fundidos con `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "**Don't** usar degradados, brillos de color ni halos radiales.",
+      "**Don't** usar emojis como iconos.",
+      "**Don't** usar etiquetas en mayúsculas con tracking amplio.",
+      "**Don't** hacer que un título pese más que la cifra que presenta.",
+      "**Don't** marcar el ítem de navegación activo con una barra lateral de color; el relleno petróleo suave basta.",
+      "**Don't** usar el petróleo sólido en más de una tarjeta de cifras por vista."
+    ]
+  }
+}
