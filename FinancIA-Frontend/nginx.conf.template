@@ -6,9 +6,10 @@ server {
     index index.html;
 
     location /api/ {
-        # Se resuelve en cada peticion para que nginx arranque aunque el backend aun no este listo.
+        # BACKEND_URL llega desde compose.yml. Se resuelve en cada peticion para que nginx
+        # arranque aunque el backend aun no este encendido.
         resolver 127.0.0.11 valid=10s;
-        set $backend http://spring-boot:8080;
+        set $backend ${BACKEND_URL};
         proxy_pass $backend;
 
         proxy_set_header Host $host;
