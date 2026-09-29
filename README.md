@@ -41,6 +41,29 @@ npm run dev
 
 Vite muestra en la terminal la dirección local, normalmente `http://localhost:5173`.
 
+## Ejecución con Docker
+
+El archivo `compose.yml` levanta la aplicación completa (frontend, backend y PostgreSQL) y la reinicia sola si se cae o si se reinicia Docker. Solo requiere Docker Desktop.
+
+El backend está en otro repositorio y debe clonarse junto a este:
+
+```bash
+git clone https://github.com/GuillenC123/FinancIA-Frontend.git
+git clone https://github.com/Cristian04-gif/financIA.git
+cd FinancIA-Frontend
+docker compose up -d --build
+```
+
+La aplicación queda en `http://localhost:3000`. nginx sirve el frontend y redirige `/api` al backend, sin la cabecera `Origin`, igual que el proxy de Vite.
+
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `BACKEND_PATH` | Ruta al repositorio del backend | `../financIA` |
+| `FRONTEND_PORT` | Puerto donde se publica el frontend | `3000` |
+| `DB_PASSWORD` | Contraseña de PostgreSQL | `password` |
+
+Se pueden definir en un archivo `.env` junto a `compose.yml`. Para detenerla: `docker compose down` (añadiendo `-v` también se borra la base de datos).
+
 ## Variables de entorno
 
 Vite solo expone al navegador las variables que empiezan con `VITE_`. El archivo `.env.example` sirve de plantilla.
@@ -108,7 +131,7 @@ FinancIA-Frontend/
 
 ## Limitaciones conocidas
 
-- **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. Este ajuste solo funciona con `npm run dev`: para desplegar, el backend debe corregir su configuración de CORS.
+- **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. La configuración de nginx de la imagen Docker hace lo mismo. Fuera de esos dos casos, el backend debe corregir su configuración de CORS.
 - **Estado del 2FA.** El endpoint `/api/v1/users/me` aún no indica si el usuario tiene el 2FA activo. El frontend lo deduce de la respuesta del inicio de sesión y lo guarda en el navegador. Cuando el backend exponga ese dato, conviene leerlo directamente de ahí.
 - **Desactivar el 2FA.** El backend no ofrece todavía un endpoint para desactivarlo.
 
