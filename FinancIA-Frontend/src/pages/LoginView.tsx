@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { ArrowLeft, CircleAlert, Smartphone } from 'lucide-react'
 import { loginUser, saveToken, saveTwoFactorEnabled, verifyTwoFactor } from '../api'
 
 type LoginViewProps = {
@@ -69,23 +70,23 @@ export function LoginView({ onAuthenticated, onTwoFactorChange, onBackToLogin }:
     <>
       <form className="auth-form" onSubmit={submit}>
         {requiresTwoFactor ? (
-          <label>Código de verificación<input value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" minLength={6} maxLength={6} required autoFocus /></label>
+          <label>Código de verificación<input className="code-input" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" minLength={6} maxLength={6} required autoFocus autoComplete="one-time-code" placeholder="000000" /></label>
         ) : (
           <>
-            <label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
-            <label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} /></label>
+            <label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" placeholder="tucorreo@ejemplo.com" /></label>
+            <label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} autoComplete="current-password" placeholder="Tu contraseña" /></label>
           </>
         )}
 
-        {error && <div className="auth-feedback error">{error}</div>}
-        {notice && <div className="auth-feedback notice">{notice}</div>}
+        {error && <div className="auth-feedback error" role="alert"><CircleAlert size={16} strokeWidth={2} aria-hidden="true" />{error}</div>}
+        {notice && <div className="auth-feedback notice" role="status"><Smartphone size={16} strokeWidth={2} aria-hidden="true" />{notice}</div>}
 
         <button className="auth-submit" type="submit" disabled={loading}>
           {loading ? 'Conectando...' : requiresTwoFactor ? 'Verificar y entrar' : 'Entrar al panel'}
         </button>
       </form>
 
-      {requiresTwoFactor && <button className="auth-back" type="button" onClick={returnToLogin}>Volver al inicio de sesión</button>}
+      {requiresTwoFactor && <button className="auth-back" type="button" onClick={returnToLogin}><ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />Volver al inicio de sesión</button>}
     </>
   )
 }

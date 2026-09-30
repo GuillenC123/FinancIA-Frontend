@@ -11,7 +11,10 @@ RUN npm run build
 
 FROM nginx:1.27-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV BACKEND_URL=http://host.docker.internal:8080
+
+# La imagen de nginx reemplaza ${BACKEND_URL} en las plantillas al arrancar.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80

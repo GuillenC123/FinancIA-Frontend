@@ -1,7 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  ArrowLeftRight,
+  ChevronsUpDown,
+  House,
+  LogOut,
+  MessagesSquare,
+  Plus,
+  ShieldCheck,
+  ShieldPlus,
+  Target,
+  type LucideIcon,
+} from 'lucide-react'
 import type { CurrentUser } from '../api'
 import { navigationItems } from '../data'
 import type { ViewId } from '../types'
+
+const navIcons: Record<ViewId, LucideIcon> = {
+  inicio: House,
+  movimientos: ArrowLeftRight,
+  metas: Target,
+  asistente: MessagesSquare,
+}
 
 type SidebarProps = {
   activeView: ViewId
@@ -48,29 +67,34 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand-header">
-        <div className="brand-icon">🤖</div>
+        <div className="brand-mark" aria-hidden="true">F</div>
         <div>
           <h1>FinancIA</h1>
-          <p>AI Financial Assistant</p>
+          <p>Tu asistente financiero</p>
         </div>
       </div>
 
       <button className="primary-button" type="button" onClick={onNewConsultation}>
-        <span>＋</span> Nueva Consulta
+        <Plus size={18} strokeWidth={2} aria-hidden="true" />
+        <span className="button-label">Nueva consulta</span>
       </button>
 
       <nav className="nav-list" aria-label="Navegación principal">
-        {navigationItems.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`nav-item ${activeView === item.id ? 'active' : ''}`}
-            onClick={() => onChangeView(item.id)}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
+        {navigationItems.map((item) => {
+          const Icon = navIcons[item.id]
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`nav-item ${activeView === item.id ? 'active' : ''}`}
+              onClick={() => onChangeView(item.id)}
+              aria-current={activeView === item.id ? 'page' : undefined}
+            >
+              <span className="nav-icon"><Icon size={19} strokeWidth={1.75} aria-hidden="true" /></span>
+              <span>{item.label}</span>
+            </button>
+          )
+        })}
       </nav>
 
       <div className="profile-area" ref={profileRef}>
@@ -78,7 +102,8 @@ export function Sidebar({
           <div className="profile-menu" role="menu">
             {twoFactorEnabled ? (
               <button type="button" role="menuitem" className="menu-status" disabled>
-                ✓ Verificación en dos pasos activada
+                <ShieldCheck size={17} strokeWidth={1.75} aria-hidden="true" />
+                Verificación en dos pasos activada
               </button>
             ) : (
               <button
@@ -89,9 +114,11 @@ export function Sidebar({
                   onActivateTwoFactor()
                 }}
               >
-                🔒 Activar verificación en dos pasos
+                <ShieldPlus size={17} strokeWidth={1.75} aria-hidden="true" />
+                Activar verificación en dos pasos
               </button>
             )}
+            <div className="menu-divider" role="separator" />
             <button
               type="button"
               role="menuitem"
@@ -101,6 +128,7 @@ export function Sidebar({
                 onLogout()
               }}
             >
+              <LogOut size={17} strokeWidth={1.75} aria-hidden="true" />
               Cerrar sesión
             </button>
           </div>
@@ -112,13 +140,15 @@ export function Sidebar({
           onClick={() => setMenuOpen((open) => !open)}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
+          aria-label={`Menú de perfil: ${fullName}`}
+          title={user?.email}
         >
-          <div className="avatar-mini">{initial}</div>
+          <div className="avatar-mini" aria-hidden="true">{initial}</div>
           <div className="profile-identity">
             <strong>{fullName}</strong>
             <small>{user?.email ?? 'Ajustes'}</small>
           </div>
-          <span className="profile-caret" aria-hidden="true">{menuOpen ? '▾' : '▴'}</span>
+          <span className="profile-caret" aria-hidden="true"><ChevronsUpDown size={16} strokeWidth={1.75} /></span>
         </button>
       </div>
     </aside>

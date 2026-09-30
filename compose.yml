@@ -1,9 +1,6 @@
-# Levanta FinancIA completo: frontend (nginx), backend (Spring Boot) y PostgreSQL.
-# El backend vive en otro repositorio; por defecto se espera clonado junto a este:
-#   FinancIa/
-#   ├── FinancIA-Frontend/   (este repositorio)
-#   └── financIA/            (https://github.com/Cristian04-gif/financIA)
-# Si esta en otra ruta, define BACKEND_PATH en un archivo .env junto a este compose.
+# Levanta solo el frontend de FinancIA (nginx) en http://localhost:3000.
+# El backend no va en Docker: se enciende aparte y nginx le reenvia las peticiones /api.
+# Por defecto lo busca en el puerto 8080 de tu PC; se cambia con BACKEND_URL en un archivo .env.
 
 services:
 
@@ -13,50 +10,7 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3000}:80"
-    depends_on:
-      spring-boot:
-        condition: service_healthy
-
-  spring-boot:
-    build: ${BACKEND_PATH:-../financIA}
-    container_name: financia-api
-    restart: unless-stopped
-    mem_reservation: 512M
     environment:
-      PROFILE: prod
-      HOST_DB: postgres
-      PORT_BD: 5432
-      NAME_DB: financia
-      DB_USERNAME: postgres
-      DB_PASSWORD: ${DB_PASSWORD:-password}
-      HOST_FRONTEND: http://localhost:${FRONTEND_PORT:-3000}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      # /actuator/health responde 401 porque esta protegido; cualquier respuesta HTTP indica que ya arranco.
-      test: [ "CMD-SHELL", "curl -s -o /dev/null http://localhost:8080/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
-
-  postgres:
-    image: pgvector/pgvector:pg17
-    container_name: financiaDB
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: financia
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ${BACKEND_PATH:-../financIA}/docker/database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d financia" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-
-volumes:
-  postgres_data:
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:8080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -43,13 +43,9 @@ Vite muestra en la terminal la dirección local, normalmente `http://localhost:5
 
 ## Ejecución con Docker
 
-El archivo `compose.yml` levanta la aplicación completa (frontend, backend y PostgreSQL) y la reinicia sola si se cae o si se reinicia Docker. Solo requiere Docker Desktop.
-
-El backend está en otro repositorio y debe clonarse junto a este:
+El archivo `compose.yml` levanta solo el frontend, servido con nginx, y lo reinicia solo si se cae o si se reinicia Docker. El backend se enciende aparte, como en desarrollo.
 
 ```bash
-git clone https://github.com/GuillenC123/FinancIA-Frontend.git
-git clone https://github.com/Cristian04-gif/financIA.git
 cd FinancIA-Frontend
 docker compose up -d --build
 ```
@@ -58,11 +54,10 @@ La aplicación queda en `http://localhost:3000`. nginx sirve el frontend y redir
 
 | Variable | Descripción | Valor por defecto |
 |---|---|---|
-| `BACKEND_PATH` | Ruta al repositorio del backend | `../financIA` |
+| `BACKEND_URL` | Dirección del backend | `http://host.docker.internal:8080` (el puerto 8080 de tu PC) |
 | `FRONTEND_PORT` | Puerto donde se publica el frontend | `3000` |
-| `DB_PASSWORD` | Contraseña de PostgreSQL | `password` |
 
-Se pueden definir en un archivo `.env` junto a `compose.yml`. Para detenerla: `docker compose down` (añadiendo `-v` también se borra la base de datos).
+Se pueden definir en un archivo `.env` junto a `compose.yml`. Para detenerlo: `docker compose down`.
 
 ## Variables de entorno
 
