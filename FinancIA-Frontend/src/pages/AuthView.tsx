@@ -30,7 +30,7 @@ export function AuthView({ onAuthenticated }: AuthViewProps) {
         <div className="auth-benefits">
           <span><Check strokeWidth={2.25} aria-hidden="true" />Resumen financiero</span>
           <span><Check strokeWidth={2.25} aria-hidden="true" />Seguimiento de metas</span>
-          <span><Check strokeWidth={2.25} aria-hidden="true" />Asistencia personalizada</span>
+          <span><Check strokeWidth={2.25} aria-hidden="true" />Asistente IA próximamente</span>
         </div>
       </section>
 

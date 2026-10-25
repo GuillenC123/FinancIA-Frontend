@@ -874,6 +874,11 @@
   color: var(--income);
 }
 
+.transaction-icon.savings {
+  background: var(--petrol-soft);
+  color: var(--petrol);
+}
+
 .amount {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -886,6 +891,10 @@
 
 .amount.expense {
   color: var(--expense);
+}
+
+.amount.savings {
+  color: var(--petrol);
 }
 
 .empty-state {

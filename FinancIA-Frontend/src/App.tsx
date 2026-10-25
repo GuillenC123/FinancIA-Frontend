@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import {
+  ApiError,
   clearToken,
   getCurrentUser,
   getToken,
@@ -23,24 +24,40 @@ function App() {
   const [modal, setModal] = useState<ModalState>(null)
   const [toast, setToast] = useState('')
   const [user, setUser] = useState<CurrentUser | null>(null)
+  const [userError, setUserError] = useState('')
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(() => getTwoFactorEnabled())
 
   useEffect(() => {
     if (!token) return
+
+    let cancelled = false
     getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null))
+      .then((currentUser) => {
+        if (!cancelled) {
+          setUser(currentUser)
+          setUserError('')
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (cancelled) return
+        if (requestError instanceof ApiError && requestError.status === 401) {
+          clearToken()
+          setToken(null)
+          setUser(null)
+          setTwoFactorEnabled(false)
+          return
+        }
+        setUserError(requestError instanceof Error ? requestError.message : 'No se pudo cargar el perfil.')
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [token])
 
   const showToast = (message: string) => {
     setToast(message)
     window.setTimeout(() => setToast(''), 2800)
-  }
-
-  const handleConsultation = (question: string) => {
-    setModal(null)
-    setActiveView('asistente')
-    showToast(`Consulta preparada: ${question}`)
   }
 
   const openDetails = (title: string, content: string) => {
@@ -49,6 +66,7 @@ function App() {
 
   const authenticate = (newToken: string) => {
     setToken(newToken)
+    setUserError('')
     setTwoFactorEnabled(getTwoFactorEnabled())
   }
 
@@ -56,6 +74,7 @@ function App() {
     clearToken()
     setToken(null)
     setUser(null)
+    setUserError('')
     setTwoFactorEnabled(false)
     setActiveView('inicio')
   }
@@ -84,14 +103,15 @@ function App() {
       />
 
       <main className="content-panel">
-        {activeView === 'inicio' && <DashboardView onOpenDetails={openDetails} />}
-        {activeView === 'movimientos' && <MovimientosView onNotify={showToast} />}
-        {activeView === 'asistente' && <AsistenteView onConsult={handleConsultation} />}
-        {activeView === 'metas' && <MetasView onOpenDetails={openDetails} onNotify={showToast} />}
+        {userError && <div className="auth-feedback error" role="alert">{userError}</div>}
+        {activeView === 'inicio' && <DashboardView userName={user?.name} onOpenDetails={openDetails} />}
+        {activeView === 'movimientos' && <MovimientosView />}
+        {activeView === 'asistente' && <AsistenteView />}
+        {activeView === 'metas' && <MetasView onOpenDetails={openDetails} />}
       </main>
 
       {modal?.type === 'consultation' && (
-        <ConsultationModal onClose={() => setModal(null)} onSubmit={handleConsultation} />
+        <ConsultationModal onClose={() => setModal(null)} />
       )}
       {modal?.type === 'details' && (
         <DetailsModal title={modal.title} content={modal.content} onClose={() => setModal(null)} />

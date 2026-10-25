@@ -13,7 +13,12 @@ Este repositorio contiene el **frontend**. El backend (Java, Spring Boot, WebFlu
 | Activación de verificación en dos pasos (2FA) | Conectado al backend |
 | Verificación del código 2FA al iniciar sesión | Conectado al backend |
 | Datos del usuario en el perfil | Conectado al backend |
-| Dashboard, Movimientos, Metas y Asistente IA | Interfaz terminada, con datos de ejemplo |
+| Dashboard | Conectado al resumen real del mes |
+| Movimientos | Conectado a la lista real del backend; filtros locales |
+| Metas | Conectado a las metas reales del usuario |
+| Asistente IA | Pendiente: el backend actual no expone un endpoint de consultas |
+
+Dashboard, movimientos y metas consultan datos reales. La creación y edición de movimientos o metas todavía no está disponible en las pantallas actuales.
 
 ## Tecnologías
 
@@ -71,6 +76,29 @@ En desarrollo **no hace falta crear ningún archivo `.env`**. Con la variable va
 
 Para valores propios de tu máquina, crea un `.env.local` a partir de `.env.example`: Git lo ignora y no se sube al repositorio.
 
+## Levantar backend y base de datos local
+
+El backend está en `financIA/` y su `compose.yml` levanta PostgreSQL y Redis. En PowerShell:
+
+```powershell
+Set-Location .\financIA
+Copy-Item .env.example .env
+docker compose up -d postgres redis
+```
+
+Configura en tu entorno de ejecución del backend las variables de `.env` (en especial `HOST_DB=localhost`, `REDIS_HOST=localhost` y sus credenciales) y ejecuta `.\mvnw.cmd spring-boot:run`. Luego, desde `FinancIA-Frontend/`, ejecuta `npm run dev`.
+
+Si el equipo agrega tablas que solo se crean en una base nueva, detén primero los servicios y elimina **solo** el volumen de PostgreSQL antes de volver a levantarlos. Esto borra todos los datos locales de PostgreSQL; conserva el volumen de Redis:
+
+```powershell
+docker compose down
+docker volume ls
+docker volume rm financia_postgres_data
+docker compose up -d postgres redis
+```
+
+El nombre por defecto del volumen es `financia_postgres_data`; confirma el nombre mostrado por `docker volume ls` si Compose usa otro nombre de proyecto. No uses `docker compose down -v` si quieres conservar el volumen de Redis.
+
 ## Scripts
 
 | Comando | Descripción |
@@ -93,7 +121,8 @@ FinancIA-Frontend/
     ├── App.tsx           # Sesión, navegación entre vistas y modales
     ├── api.ts            # Comunicación con el backend y manejo del token
     ├── types.ts          # Tipos compartidos
-    ├── data.ts           # Datos de ejemplo de las vistas aún no conectadas
+    ├── data.ts           # Navegación
+    ├── format.ts         # Formato de fechas y moneda
     ├── components/
     │   ├── Sidebar.tsx   # Menú lateral y menú del perfil
     │   └── Modals.tsx    # Nueva consulta, detalles y activación de 2FA
@@ -117,6 +146,9 @@ FinancIA-Frontend/
 | POST | `/api/v1/auth/2fa/confirm` | Confirma el código y activa el 2FA |
 | POST | `/api/v1/auth/verify-2fa` | Segundo paso del inicio de sesión |
 | GET | `/api/v1/users/me` | Datos del usuario autenticado |
+| GET | `/api/v1/user/dashboard?from=YYYY-MM-DD` | Resumen financiero del periodo |
+| GET | `/api/v1/movements/my-movements` | Movimientos paginados del usuario |
+| GET | `/api/v1/objectives` | Metas financieras paginadas del usuario |
 
 ## Autenticación y 2FA
 
