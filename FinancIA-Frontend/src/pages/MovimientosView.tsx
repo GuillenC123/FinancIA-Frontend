@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -7,13 +7,29 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  Paperclip,
   PiggyBank,
+  Plus,
   SearchX,
+  Trash2,
   Utensils,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { getMovements, type Movement } from '../api'
+import {
+  analyzeVoucher,
+  createMovement,
+  deleteMovement,
+  getAccounts,
+  getGlobalCategories,
+  getMovements,
+  getUserCategories,
+  uploadMovementReceipt,
+  type Account,
+  type FinancialCategory,
+  type Movement,
+  type VoucherAnalysis,
+} from '../api'
 import { formatCurrency, formatDate } from '../format'
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -63,19 +79,47 @@ export function MovimientosView() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  const [availableAccounts, setAvailableAccounts] = useState<Account[]>([])
+  const [categories, setCategories] = useState<FinancialCategory[]>([])
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [mutationError, setMutationError] = useState('')
+  const [busyMovement, setBusyMovement] = useState(false)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [voucher, setVoucher] = useState<VoucherAnalysis | null>(null)
+  const [analyzingVoucher, setAnalyzingVoucher] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedAccountId, setSelectedAccountId] = useState('')
+  const [movementAmount, setMovementAmount] = useState('')
+  const [movementDescription, setMovementDescription] = useState('')
 
   useEffect(() => {
     let cancelled = false
 
     getMovements()
       .then((response) => {
-        if (!cancelled) setMovements(response.content)
+        if (!cancelled) {
+          setMovements(response.content)
+          setError('')
+        }
       })
       .catch((requestError: unknown) => {
         if (!cancelled) setError(errorMessage(requestError))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
+      })
+
+    Promise.all([getAccounts(), getGlobalCategories(), getUserCategories()])
+      .then(([accountData, globalCategories, userCategories]) => {
+        if (!cancelled) {
+          const activeAccounts = accountData.filter((item) => item.active)
+          setAvailableAccounts(activeAccounts)
+          setSelectedAccountId(activeAccounts[0]?.id ?? '')
+          setCategories([...globalCategories, ...userCategories])
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (!cancelled) setMutationError(errorMessage(requestError))
       })
 
     return () => {
@@ -98,11 +142,114 @@ export function MovimientosView() {
   })
 
   const selectedMonth = months.find((option) => option.value === month)?.label ?? month
-  const selectedAccount = accountOptions.find((option) => option.value === account)?.label ?? 'Todas las cuentas'
+  const selectedAccountLabel = accountOptions.find((option) => option.value === account)?.label ?? 'Todas las cuentas'
   const retry = () => {
     setLoading(true)
     setError('')
+    setMutationError('')
     setReloadCount((count) => count + 1)
+  }
+
+  const createNewMovement = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const values = new FormData(form)
+    const category = categories.find((item) => item.id === selectedCategory)
+    if (!category) {
+      setMutationError('Selecciona una categoría válida.')
+      return
+    }
+    setBusyMovement(true)
+    setMutationError('')
+    try {
+      const createdMovement = await createMovement({
+        accountId: String(values.get('accountId')),
+        category: { categoryId: category.id, name: category.name, type: category.type },
+        type: category.type === 'INGRESOS' ? 'INGRESO' : category.type === 'AHORRO' ? 'AHORRO' : 'EGRESO',
+        amount: Number(movementAmount),
+        description: movementDescription,
+      })
+      if (receiptFile) {
+        try {
+          await uploadMovementReceipt(createdMovement.id, receiptFile)
+        } catch (uploadError) {
+          setMutationError(`El movimiento se guardó, pero no se pudo adjuntar el comprobante: ${errorMessage(uploadError)}`)
+          form.reset()
+          setReceiptFile(null)
+          setVoucher(null)
+          setMovementAmount('')
+          setMovementDescription('')
+          setShowCreateForm(false)
+          setReloadCount((count) => count + 1)
+          return
+        }
+      }
+      form.reset()
+      setReceiptFile(null)
+      setVoucher(null)
+      setMovementAmount('')
+      setMovementDescription('')
+      setShowCreateForm(false)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setMutationError(errorMessage(requestError))
+    } finally {
+      setBusyMovement(false)
+    }
+  }
+
+  const analyzeReceipt = async () => {
+    if (!receiptFile) return
+    setAnalyzingVoucher(true)
+    setMutationError('')
+    try {
+      const analysis = await analyzeVoucher(receiptFile)
+      setVoucher(analysis)
+      if (typeof analysis.totalAmount === 'number') setMovementAmount(String(analysis.totalAmount))
+      if (analysis.description || analysis.companyName) {
+        setMovementDescription(analysis.description || analysis.companyName || '')
+      }
+      const suggestion = analysis.category?.find((item) => categories.some((category) => category.id === item.id))
+      if (suggestion) setSelectedCategory(suggestion.id)
+      const accountSuggestion = analysis.accounts?.find((item) => availableAccounts.some((account) => account.id === item.id))
+      if (accountSuggestion) setSelectedAccountId(accountSuggestion.id)
+    } catch (requestError) {
+      setMutationError(errorMessage(requestError))
+    } finally {
+      setAnalyzingVoucher(false)
+    }
+  }
+
+  const removeMovement = async (movement: Movement) => {
+    if (!window.confirm(`¿Eliminar el movimiento «${movement.description || movement.category.name}»?`)) return
+    setMutationError('')
+    try {
+      await deleteMovement(movement.movementId)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setMutationError(errorMessage(requestError))
+    }
+  }
+
+  const uploadReceipt = async (movement: Movement, file: File) => {
+    setMutationError('')
+    try {
+      await uploadMovementReceipt(movement.movementId, file)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setMutationError(errorMessage(requestError))
+    }
+  }
+
+  const toggleCreateForm = () => {
+    if (showCreateForm) {
+      setReceiptFile(null)
+      setVoucher(null)
+      setMovementAmount('')
+      setMovementDescription('')
+      setMutationError('')
+    }
+    setShowCreateForm(!showCreateForm)
   }
 
   return (
@@ -110,7 +257,45 @@ export function MovimientosView() {
       <header className="page-header">
         <h2>Mis movimientos</h2>
         <p>Revisa tus ingresos, gastos y ahorros registrados.</p>
+        <button className="modal-primary" type="button" onClick={toggleCreateForm}>
+          <Plus size={16} aria-hidden="true" />{showCreateForm ? 'Cancelar' : 'Nuevo movimiento'}
+        </button>
       </header>
+
+      {showCreateForm && (
+        <section className="panel-card management-panel">
+          <h3>Registrar movimiento</h3>
+          {mutationError && <div className="auth-feedback error" role="alert">{mutationError}</div>}
+          {availableAccounts.length === 0 || categories.length === 0 ? (
+            <p className="empty-state">Para registrar un movimiento necesitas una cuenta activa y una categoría. Puedes administrarlas en Gestión.</p>
+          ) : (
+            <form className="management-form" onSubmit={createNewMovement}>
+              <label>Cuenta<select name="accountId" value={selectedAccountId} onChange={(event) => setSelectedAccountId(event.target.value)} required>{availableAccounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+              <label>Categoría<select name="categoryId" value={selectedCategory || categories[0]?.id || ''} onChange={(event) => setSelectedCategory(event.target.value)} required>{categories.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.type}</option>)}</select></label>
+              <label>Monto<input name="amount" type="number" min="0.01" step="0.01" value={movementAmount} onChange={(event) => setMovementAmount(event.target.value)} required /></label>
+              <label>Descripción<input name="description" value={movementDescription} onChange={(event) => setMovementDescription(event.target.value)} /></label>
+              <label>Comprobante<input type="file" accept="image/*,.pdf" onChange={(event) => {
+                setReceiptFile(event.currentTarget.files?.[0] ?? null)
+                setVoucher(null)
+              }} /></label>
+              <button className="secondary-button" type="button" onClick={() => void analyzeReceipt()} disabled={!receiptFile || analyzingVoucher}>
+                {analyzingVoucher ? 'Analizando…' : 'Analizar comprobante'}
+              </button>
+              <button className="modal-primary" type="submit" disabled={busyMovement}>{busyMovement ? 'Guardando…' : 'Guardar movimiento'}</button>
+            </form>
+          )}
+          {voucher && (
+            <div className="voucher-summary" role="status">
+              <strong>Datos detectados; revísalos antes de guardar.</strong>
+              {voucher.companyName && <span>Comercio: {voucher.companyName}</span>}
+              {voucher.ruc && <span>RUC: {voucher.ruc}</span>}
+              {voucher.dateIssued && <span>Fecha del comprobante: {formatDate(voucher.dateIssued)}</span>}
+              {voucher.paymentMethod && <span>Medio de pago: {voucher.paymentMethod}</span>}
+              {voucher.expenseCategory && <span>Categoría detectada: {voucher.expenseCategory}</span>}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="filters-bar">
         <div className="filter-row">
@@ -136,7 +321,7 @@ export function MovimientosView() {
           <FilterMenu
             label="Cuenta"
             value={account}
-            displayValue={selectedAccount}
+            displayValue={selectedAccountLabel}
             isOpen={openMenu === 'account'}
             options={accountOptions}
             account
@@ -150,6 +335,7 @@ export function MovimientosView() {
       </section>
 
       <section className="transactions-block" aria-label="Movimientos registrados" aria-live="polite">
+        {mutationError && !showCreateForm && <div className="auth-feedback error" role="alert">{mutationError}</div>}
         {loading && <div className="empty-state" role="status">Cargando movimientos…</div>}
         {error && (
           <div className="auth-feedback error" role="alert">
@@ -182,6 +368,17 @@ export function MovimientosView() {
                 </div>
               </div>
               <div className={`amount ${kind}`}>{sign}{formatCurrency(Math.abs(movement.amount))}</div>
+              <div className="movement-actions">
+                {movement.receiptUrl
+                  ? <a className="secondary-button" href={movement.receiptUrl} target="_blank" rel="noreferrer">Ver comprobante</a>
+                  : <label className="secondary-button file-button"><Paperclip size={15} aria-hidden="true" />Adjuntar<input type="file" accept="image/*,.pdf" onChange={(event) => {
+                      const file = event.currentTarget.files?.[0]
+                      if (file) void uploadReceipt(movement, file)
+                    }} /></label>}
+                <button className="secondary-button" type="button" onClick={() => void removeMovement(movement)} aria-label="Eliminar movimiento">
+                  <Trash2 size={15} aria-hidden="true" />
+                </button>
+              </div>
             </article>
           )
         })}

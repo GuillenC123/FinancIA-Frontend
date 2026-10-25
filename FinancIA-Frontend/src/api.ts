@@ -88,6 +88,10 @@ export type Movement = {
   receiptUrl: string | null
 }
 
+export type CreatedMovement = {
+  id: string
+}
+
 export type FinancialObjective = {
   id: string
   name: string
@@ -98,6 +102,104 @@ export type FinancialObjective = {
   startDate: string
   targetDate: string
   status: 'INICIADA' | 'EN_PROCESO' | 'PAUSADA' | 'REANUDADA' | 'COMPLETADA' | 'CANCELADA'
+}
+
+export type Account = {
+  id: string
+  name: string
+  type: 'EFECTIVO' | 'BANCO' | 'BILLETERA_DIGITAL' | 'OTRO'
+  currentBalance: number
+  creationDate: string
+  active: boolean
+}
+
+export type FinancialCategory = {
+  id: string
+  name: string
+  type: 'INGRESOS' | 'GASTOS' | 'AHORRO'
+  creationDate?: string
+  active?: boolean
+}
+
+export type Transfer = {
+  id: string
+  accountOrigin: { id: string; name: string }
+  accountDestination: { id: string; name: string }
+  description: string
+  creationDate: string
+  amount: number
+}
+
+export type BudgetCategory = {
+  id: string
+  categoryId: string
+  amountLimit: number
+}
+
+export type Budget = {
+  id: string
+  userId: string
+  name: string
+  periodStart: string
+  periodEnd: string
+  amountLimitTotal: number
+  active: boolean
+  creationDate: string
+  updateDate: string
+  categories: BudgetCategory[]
+}
+
+export type BudgetConsumption = {
+  budgetId: string
+  amountLimitTotal: number
+  spent: number
+  available: number
+  exceeded: number
+  categories: Array<{
+    categoryId: string
+    amountLimit: number
+    spent: number
+    available: number
+    exceeded: number
+  }>
+}
+
+export type Subscription = {
+  id: string
+  name: string
+  amount: number
+  frequency: 'MENSUAL' | 'ANUAL' | 'SEMANAL'
+  type: 'INGRESO' | 'EGRESO' | 'AHORRO'
+  dateNextPayment: string
+  active: boolean
+}
+
+export type VoucherAnalysis = {
+  companyName: string | null
+  ruc: string | null
+  dateIssued: string | null
+  totalAmount: number | null
+  paymentMethod: string | null
+  expenseCategory: string | null
+  description: string | null
+  category: Array<{ id: string; name: string; type: string }> | null
+  accounts: Array<{ id: string; name: string; type: string }> | null
+}
+
+export type Contribution = {
+  id: string
+  objective: {
+    id: string
+    name: string
+    description: string
+    currentAmount: number
+    targetAmount: number
+    percentageProgress: number
+    status: FinancialObjective['status']
+  }
+  amount: number
+  date: string
+  description: string
 }
 
 export class ApiError extends Error {
@@ -115,7 +217,7 @@ type BackendError = {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
-  if (options.body !== undefined) headers.set('Content-Type', 'application/json')
+  if (options.body !== undefined && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json')
 
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -213,13 +315,258 @@ export function getDashboardSummary(from: string) {
 }
 
 export function getMovements() {
-  return request<PaginationResponse<Movement>>(
-    '/api/v1/movements/my-movements?pageNum=0&pageSize=100&sortBy=date_issue&direction=desc',
-  )
+  return getAllPages<Movement>('/api/v1/movements/my-movements', 'date_issue')
 }
 
 export function getFinancialObjectives() {
-  return request<PaginationResponse<FinancialObjective>>(
-    '/api/v1/objectives?pageNum=0&pageSize=100&sortBy=startDate&direction=desc',
+  return getAllPages<FinancialObjective>('/api/v1/objectives', 'startDate')
+}
+
+async function getAllPages<T>(path: string, sortBy: string): Promise<PaginationResponse<T>> {
+  const content: T[] = []
+  let pageNum = 0
+  let page: PaginationResponse<T>
+
+  do {
+    page = await request<PaginationResponse<T>>(
+      `${path}?pageNum=${pageNum}&pageSize=100&sortBy=${sortBy}&direction=desc`,
+    )
+    content.push(...page.content)
+    pageNum += 1
+  } while (!page.last && page.content.length > 0)
+
+  return { ...page, content, totalElements: content.length }
+}
+
+export function createMovement(payload: {
+  accountId: string
+  category: { categoryId: string; name: string; type: string; parentCategoryId?: string }
+  type: 'INGRESO' | 'EGRESO' | 'AHORRO'
+  amount: number
+  description: string
+}) {
+  return request<CreatedMovement>('/api/v1/movements', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteMovement(id: string) {
+  return request<void>(`/api/v1/movements/my-movements/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function uploadMovementReceipt(id: string, file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request<void>(`/api/v1/movements/my-movements/${encodeURIComponent(id)}/submit-voucher`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export function analyzeVoucher(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request<VoucherAnalysis>('/api/v1/voucher/analyzer', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export function createObjective(payload: {
+  name: string
+  description: string
+  targetAmount: number
+  targetDate: string
+}) {
+  return request<FinancialObjective>('/api/v1/objectives', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateObjectiveStatus(id: string, objectiveState: FinancialObjective['status']) {
+  return request<void>(`/api/v1/objectives/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ objectiveState }),
+  })
+}
+
+export function contributeToObjective(id: string, payload: {
+  accountId: string
+  categoryId: string
+  amount: number
+  description: string
+}) {
+  return request<void>(`/api/v1/objectives/${encodeURIComponent(id)}/contribution`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getObjectiveContributions(id: string) {
+  return getAllPages<Contribution>(`/api/v1/objectives/contributions/objective/${encodeURIComponent(id)}`, 'date')
+}
+
+export function getAccounts() {
+  return request<Account[]>('/api/v1/accounts/my-accounts')
+}
+
+export function createAccount(payload: {
+  name: string
+  type: Account['type']
+  initialBalance: number
+}) {
+  return request<Account>('/api/v1/accounts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function changeAccountStatus(id: string) {
+  return request<void>(`/api/v1/accounts/my-account/${encodeURIComponent(id)}/changeStatus`, { method: 'PUT' })
+}
+
+export function createTransfer(payload: {
+  idSource: string
+  idTarget: string
+  amount: number
+  description: string
+}) {
+  return request<void>('/api/v1/accounts/transfer', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getTransfers() {
+  return getAllPages<Transfer>('/api/v1/transfers/my-transfers', 'fecha_creacion')
+}
+
+export function updateTransfer(id: string, payload: { newAmount: number; newDescription: string }) {
+  return request<void>(`/api/v1/transfers/my-transfers/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteTransfer(id: string) {
+  return request<void>(`/api/v1/transfers/my-transfers/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function getGlobalCategories() {
+  return request<FinancialCategory[]>('/api/v1/categories/global')
+}
+
+export function getUserCategories() {
+  return request<FinancialCategory[]>('/api/v1/categories/of-user')
+}
+
+export function createUserCategory(payload: {
+  name: string
+  type: FinancialCategory['type']
+  parentCategoryId: string
+  active: true
+}) {
+  return request<FinancialCategory>('/api/v1/categories/of-user', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getCategory(id: string) {
+  return request<FinancialCategory & { parentCategoryId: string }>(
+    `/api/v1/categories/category/${encodeURIComponent(id)}`,
   )
+}
+
+export function updateUserCategory(id: string, payload: {
+  name: string
+  type: FinancialCategory['type']
+  parentCategoryId: string
+  active: true
+}) {
+  return request<FinancialCategory>(`/api/v1/categories/of-user/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteUserCategory(id: string) {
+  return request<void>(`/api/v1/categories/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function getBudgets() {
+  return request<Budget[]>('/api/v1/budgets')
+}
+
+export function createBudget(payload: {
+  name: string
+  periodStart: string
+  periodEnd: string
+  amountLimitTotal: number
+  categories: Array<{ categoryId: string; amountLimit: number }>
+}) {
+  return request<Budget>('/api/v1/budgets', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateBudget(id: string, payload: {
+  name: string
+  periodStart: string
+  periodEnd: string
+  amountLimitTotal: number
+  categories: Array<{ categoryId: string; amountLimit: number }>
+}) {
+  return request<Budget>(`/api/v1/budgets/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function changeBudgetStatus(id: string, active: boolean) {
+  return request<Budget>(`/api/v1/budgets/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ active }),
+  })
+}
+
+export function getBudgetConsumption(id: string) {
+  return request<BudgetConsumption>(`/api/v1/budgets/${encodeURIComponent(id)}/consumption`)
+}
+
+export function getSubscriptions() {
+  return request<Subscription[]>('/api/v1/subscriptions/my-subs')
+}
+
+export function createSubscription(payload: {
+  payingAccountId: string
+  categoryId: string
+  name: string
+  amount: number
+  frequency: Subscription['frequency']
+  type: Subscription['type']
+  payDay: number
+}) {
+  return request<Subscription>('/api/v1/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function toggleSubscription(id: string) {
+  return request<void>(`/api/v1/subscriptions/my-subs/${encodeURIComponent(id)}`, { method: 'PUT' })
+}
+
+export function changePassword(newPassword: string) {
+  return request<void>('/api/v1/users/me/password', {
+    method: 'PUT',
+    body: JSON.stringify({ newPassword }),
+  })
+}
+
+export function suspendUser() {
+  return request<void>('/api/v1/users/me', { method: 'DELETE' })
 }

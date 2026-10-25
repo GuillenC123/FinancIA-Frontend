@@ -1,9 +1,10 @@
-export type ViewId = 'inicio' | 'movimientos' | 'metas' | 'asistente'
+export type ViewId = 'inicio' | 'movimientos' | 'metas' | 'gestion' | 'asistente'
 
 export type ModalState =
   | { type: 'consultation' }
   | { type: 'details'; title: string; content: string }
   | { type: 'twofactor' }
+  | { type: 'profileSettings' }
   | null
 
 export type DetailModalProps = {

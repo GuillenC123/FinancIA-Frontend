@@ -10,10 +10,11 @@ import {
   type CurrentUser,
 } from './api'
 import { Sidebar } from './components/Sidebar'
-import { ConsultationModal, DetailsModal, TwoFactorModal } from './components/Modals'
+import { ConsultationModal, DetailsModal, ProfileSettingsModal, TwoFactorModal } from './components/Modals'
 import { AuthView } from './pages/AuthView'
 import { AsistenteView } from './pages/AsistenteView'
 import { DashboardView } from './pages/DashboardView'
+import { GestionView } from './pages/GestionView'
 import { MetasView } from './pages/MetasView'
 import { MovimientosView } from './pages/MovimientosView'
 import type { ModalState, ViewId } from './types'
@@ -100,6 +101,7 @@ function App() {
         user={user}
         twoFactorEnabled={twoFactorEnabled}
         onActivateTwoFactor={() => setModal({ type: 'twofactor' })}
+        onManageProfile={() => setModal({ type: 'profileSettings' })}
       />
 
       <main className="content-panel">
@@ -108,6 +110,7 @@ function App() {
         {activeView === 'movimientos' && <MovimientosView />}
         {activeView === 'asistente' && <AsistenteView />}
         {activeView === 'metas' && <MetasView onOpenDetails={openDetails} />}
+        {activeView === 'gestion' && <GestionView />}
       </main>
 
       {modal?.type === 'consultation' && (
@@ -121,6 +124,16 @@ function App() {
           onClose={() => setModal(null)}
           onActivated={() => markTwoFactorEnabled('Verificación en dos pasos activada')}
           onAlreadyEnabled={() => markTwoFactorEnabled('Ya tenías la verificación en dos pasos activada')}
+        />
+      )}
+      {modal?.type === 'profileSettings' && (
+        <ProfileSettingsModal
+          onClose={() => setModal(null)}
+          onPasswordChanged={() => showToast('Contraseña actualizada')}
+          onAccountSuspended={() => {
+            setModal(null)
+            logout()
+          }}
         />
       )}
       {toast && <div className="toast-message">{toast}</div>}

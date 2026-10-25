@@ -1,6 +1,19 @@
-import { useEffect, useState } from 'react'
-import { CalendarDays, ChevronRight, Laptop, LifeBuoy, Plane, Target, type LucideIcon } from 'lucide-react'
-import { getFinancialObjectives, type FinancialObjective } from '../api'
+import { useEffect, useState, type FormEvent } from 'react'
+import { CalendarDays, ChevronRight, Laptop, LifeBuoy, Plane, Plus, Target, type LucideIcon } from 'lucide-react'
+import {
+  contributeToObjective,
+  createObjective,
+  getAccounts,
+  getFinancialObjectives,
+  getGlobalCategories,
+  getObjectiveContributions,
+  getUserCategories,
+  updateObjectiveStatus,
+  type Account,
+  type Contribution,
+  type FinancialCategory,
+  type FinancialObjective,
+} from '../api'
 import { formatCurrency, formatDate } from '../format'
 
 type MetasViewProps = {
@@ -31,19 +44,41 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [categories, setCategories] = useState<FinancialCategory[]>([])
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [contributingTo, setContributingTo] = useState<string | null>(null)
+  const [actionError, setActionError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [contributions, setContributions] = useState<Record<string, Contribution[]>>({})
+  const [loadingContributions, setLoadingContributions] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     getFinancialObjectives()
       .then((response) => {
-        if (!cancelled) setGoals(response.content)
+        if (!cancelled) {
+          setGoals(response.content)
+          setError('')
+        }
       })
       .catch((requestError: unknown) => {
         if (!cancelled) setError(errorMessage(requestError))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
+      })
+
+    Promise.all([getAccounts(), getGlobalCategories(), getUserCategories()])
+      .then(([accountData, globalCategories, userCategories]) => {
+        if (!cancelled) {
+          setAccounts(accountData.filter((account) => account.active))
+          setCategories([...globalCategories, ...userCategories])
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (!cancelled) setActionError(errorMessage(requestError))
       })
 
     return () => {
@@ -60,6 +95,91 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
   const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0)
   const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0)
   const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0
+  const savingsCategories = categories.filter((category) => category.type === 'AHORRO')
+  const availableStates = (status: FinancialObjective['status']): FinancialObjective['status'][] => {
+    if (status === 'INICIADA') return ['EN_PROCESO']
+    if (status === 'EN_PROCESO') return ['PAUSADA', 'COMPLETADA', 'CANCELADA']
+    if (status === 'PAUSADA') return ['REANUDADA']
+    if (status === 'REANUDADA') return ['EN_PROCESO']
+    return []
+  }
+
+  const createGoal = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const values = new FormData(form)
+    setBusy(true)
+    setActionError('')
+    try {
+      await createObjective({
+        name: String(values.get('name')),
+        description: String(values.get('description')),
+        targetAmount: Number(values.get('targetAmount')),
+        targetDate: String(values.get('targetDate')),
+      })
+      form.reset()
+      setShowCreateForm(false)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const changeStatus = async (goal: FinancialObjective, status: FinancialObjective['status']) => {
+    setActionError('')
+    try {
+      await updateObjectiveStatus(goal.id, status)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    }
+  }
+
+  const contribute = async (goal: FinancialObjective, event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const values = new FormData(form)
+    setBusy(true)
+    setActionError('')
+    try {
+      await contributeToObjective(goal.id, {
+        accountId: String(values.get('accountId')),
+        categoryId: String(values.get('categoryId')),
+        amount: Number(values.get('amount')),
+        description: String(values.get('description')),
+      })
+      form.reset()
+      setContributingTo(null)
+      setReloadCount((count) => count + 1)
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const loadContributions = async (goalId: string) => {
+    if (contributions[goalId]) {
+      setContributions((current) => {
+        const next = { ...current }
+        delete next[goalId]
+        return next
+      })
+      return
+    }
+    setLoadingContributions(goalId)
+    setActionError('')
+    try {
+      const response = await getObjectiveContributions(goalId)
+      setContributions((current) => ({ ...current, [goalId]: response.content }))
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    } finally {
+      setLoadingContributions(null)
+    }
+  }
 
   const colorClasses = ['purple', 'green', 'blue']
 
@@ -68,7 +188,24 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
       <header className="page-header">
         <h2>Metas</h2>
         <p>Organiza tus objetivos financieros y sigue su progreso.</p>
+        <button className="modal-primary" type="button" onClick={() => setShowCreateForm((show) => !show)}>
+          <Plus size={16} aria-hidden="true" />{showCreateForm ? 'Cancelar' : 'Nueva meta'}
+        </button>
       </header>
+
+      {actionError && <div className="auth-feedback error" role="alert">{actionError}</div>}
+      {showCreateForm && (
+        <section className="panel-card management-panel">
+          <h3>Crear meta financiera</h3>
+          <form className="management-form" onSubmit={createGoal}>
+            <label>Nombre<input name="name" minLength={1} required /></label>
+            <label>Descripción<input name="description" /></label>
+            <label>Monto objetivo<input name="targetAmount" type="number" min="0.01" step="0.01" required /></label>
+            <label>Fecha objetivo<input name="targetDate" type="date" required /></label>
+            <button className="modal-primary" type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Crear meta'}</button>
+          </form>
+        </section>
+      )}
 
       {loading && <div className="empty-state" role="status">Cargando tus metas…</div>}
       {error && (
@@ -148,6 +285,50 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
                         <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
                       </button>
                     </div>
+                    <div className="goal-actions">
+                      <button className="secondary-button" type="button" onClick={() => void loadContributions(goal.id)} disabled={loadingContributions === goal.id}>
+                        {loadingContributions === goal.id ? 'Cargando aportes…' : contributions[goal.id] ? 'Ocultar aportes' : 'Ver aportes'}
+                      </button>
+                      {availableStates(goal.status).length > 0 && (
+                        <label className="goal-state-control">
+                          Cambiar estado
+                          <select value="" onChange={(event) => {
+                            const nextState = event.target.value as FinancialObjective['status']
+                            if (nextState) void changeStatus(goal, nextState)
+                          }}>
+                            <option value="">Seleccionar</option>
+                            {availableStates(goal.status).map((status) => <option value={status} key={status}>{statusLabels[status]}</option>)}
+                          </select>
+                        </label>
+                      )}
+                      {!['COMPLETADA', 'CANCELADA', 'PAUSADA'].includes(goal.status) && (
+                        <button className="secondary-button" type="button" onClick={() => setContributingTo(contributingTo === goal.id ? null : goal.id)}>
+                          {contributingTo === goal.id ? 'Cancelar aporte' : 'Registrar aporte'}
+                        </button>
+                      )}
+                    </div>
+                    {contributions[goal.id] && (
+                      <div className="goal-contributions">
+                        {contributions[goal.id].length === 0
+                          ? <small>Aún no hay aportes registrados.</small>
+                          : contributions[goal.id].map((contribution) => (
+                            <div key={contribution.id}>
+                              <span>{formatDate(contribution.date)} · {contribution.description || 'Aporte a la meta'}</span>
+                              <strong>{formatCurrency(contribution.amount)}</strong>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                    {contributingTo === goal.id && (
+                      <form className="management-form" onSubmit={(event) => void contribute(goal, event)}>
+                        <label>Cuenta<select name="accountId" required>{accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}</select></label>
+                        <label>Categoría de ahorro<select name="categoryId" required>{savingsCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+                        <label>Monto<input name="amount" type="number" min="0.01" step="0.01" required /></label>
+                        <label>Descripción<input name="description" /></label>
+                        {savingsCategories.length === 0 && <small>Para aportar, agrega una categoría de tipo Ahorro en Gestión.</small>}
+                        <button className="modal-primary" type="submit" disabled={busy || accounts.length === 0 || savingsCategories.length === 0}>Confirmar aporte</button>
+                      </form>
+                    )}
                   </article>
                 )
               })}

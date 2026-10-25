@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   ShieldPlus,
   Target,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../api'
@@ -19,6 +20,7 @@ const navIcons: Record<ViewId, LucideIcon> = {
   inicio: House,
   movimientos: ArrowLeftRight,
   metas: Target,
+  gestion: Wrench,
   asistente: MessagesSquare,
 }
 
@@ -30,6 +32,7 @@ type SidebarProps = {
   user: CurrentUser | null
   twoFactorEnabled: boolean
   onActivateTwoFactor: () => void
+  onManageProfile: () => void
 }
 
 export function Sidebar({
@@ -40,6 +43,7 @@ export function Sidebar({
   user,
   twoFactorEnabled,
   onActivateTwoFactor,
+  onManageProfile,
 }: SidebarProps) {
   const fullName = user ? `${user.name} ${user.lastName}` : 'Mi Perfil'
   const initial = user?.name.charAt(0).toUpperCase() ?? 'A'
@@ -119,6 +123,16 @@ export function Sidebar({
               </button>
             )}
             <div className="menu-divider" role="separator" />
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false)
+                onManageProfile()
+              }}
+            >
+              Ajustes de cuenta
+            </button>
             <button
               type="button"
               role="menuitem"

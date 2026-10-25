@@ -1049,6 +1049,80 @@
   transition: background-color 150ms ease;
 }
 
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.goal-state-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ink-subtle);
+  font-size: 0.75rem;
+}
+
+.goal-state-control select {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.goal-contributions {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+}
+
+.goal-contributions > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goal-contributions span {
+  color: var(--ink-subtle);
+}
+
+.movement-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.movement-actions .secondary-button,
+.file-button {
+  gap: 5px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.file-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.file-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.danger-action {
+  color: var(--expense);
+}
+
 .quick-plan {
   display: flex;
   align-items: center;
@@ -1070,6 +1144,110 @@
   max-width: 68ch;
   font-size: 0.9375rem;
   color: var(--ink-muted);
+}
+
+.management-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.management-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.management-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+
+.management-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.management-form input,
+.management-form select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.management-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.management-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.management-row > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.management-row strong,
+.management-row small {
+  display: block;
+}
+
+.management-row small {
+  color: var(--ink-subtle);
+  font-size: 0.8125rem;
+}
+
+.management-row > .secondary-button {
+  flex-shrink: 0;
+}
+
+.management-card {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.management-card .management-row {
+  padding: 0;
+  border: 0;
+}
+
+.management-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 12px 0 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.voucher-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 12px 0 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.voucher-summary strong {
+  flex-basis: 100%;
+  color: var(--petrol);
 }
 
 /* ─── Asistente ──────────────────────────────────────────── */
@@ -1840,7 +2018,7 @@
     bottom: 0;
     z-index: 60;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     background: var(--surface);
@@ -1870,6 +2048,14 @@
   .nav-item .nav-icon {
     padding: 2px 14px;
     transition: background-color 150ms ease;
+  }
+
+  .management-row {
+    flex-wrap: wrap;
+  }
+
+  .management-row > div {
+    flex-basis: 100%;
   }
 
   .profile-area {

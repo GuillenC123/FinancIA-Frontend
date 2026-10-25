@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChartPie, MessageSquarePlus, ShieldCheck, X } from 'lucide-react'
-import { confirmTwoFactor, setupTwoFactor } from '../api'
+import { changePassword, confirmTwoFactor, setupTwoFactor, suspendUser } from '../api'
 import type { DetailModalProps } from '../types'
 
 const CloseIcon = () => <X size={18} strokeWidth={2} aria-hidden="true" />
@@ -144,6 +144,75 @@ export function DetailsModal({ title, content, onClose }: DetailModalProps) {
           <strong>{content}</strong>
         </div>
         <button className="modal-primary full-width" type="button" onClick={onClose}>Entendido</button>
+      </div>
+    </div>
+  )
+}
+
+type ProfileSettingsModalProps = {
+  onClose: () => void
+  onPasswordChanged: () => void
+  onAccountSuspended: () => void
+}
+
+export function ProfileSettingsModal({ onClose, onPasswordChanged, onAccountSuspended }: ProfileSettingsModalProps) {
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  const updatePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+    setNotice('')
+    try {
+      await changePassword(password)
+      setPassword('')
+      setNotice('La contraseña se actualizó correctamente.')
+      onPasswordChanged()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo actualizar la contraseña.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const suspendAccount = async () => {
+    if (!window.confirm('La cuenta se suspenderá durante 30 días. ¿Deseas continuar?')) return
+    setLoading(true)
+    setError('')
+    try {
+      await suspendUser()
+      onAccountSuspended()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo suspender la cuenta.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div className="modal-card details-modal" role="dialog" aria-modal="true" aria-labelledby="profile-settings-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div className="modal-icon" aria-hidden="true"><ShieldCheck size={20} strokeWidth={1.75} /></div>
+          <div>
+            <h2 id="profile-settings-title">Ajustes de cuenta</h2>
+            <p>Actualiza tu contraseña o suspende temporalmente tu cuenta.</p>
+          </div>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
+        </div>
+        <form className="management-form" onSubmit={updatePassword}>
+          <label>Nueva contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <small>Debe incluir mayúscula, minúscula, número y símbolo.</small>
+          <button className="modal-primary" type="submit" disabled={loading}>{loading ? 'Guardando…' : 'Cambiar contraseña'}</button>
+        </form>
+        {notice && <div className="auth-feedback notice" role="status">{notice}</div>}
+        {error && <div className="auth-feedback error" role="alert">{error}</div>}
+        <div className="modal-actions">
+          <button className="secondary-button danger-action" type="button" onClick={() => void suspendAccount()} disabled={loading}>Suspender cuenta</button>
+          <button className="secondary-button" type="button" onClick={onClose}>Cerrar</button>
+        </div>
       </div>
     </div>
   )

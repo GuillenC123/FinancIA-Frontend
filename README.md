@@ -13,12 +13,17 @@ Este repositorio contiene el **frontend**. El backend (Java, Spring Boot, WebFlu
 | Activación de verificación en dos pasos (2FA) | Conectado al backend |
 | Verificación del código 2FA al iniciar sesión | Conectado al backend |
 | Datos del usuario en el perfil | Conectado al backend |
+| Cambio de contraseña y suspensión de cuenta | Conectado al backend |
 | Dashboard | Conectado al resumen real del mes |
-| Movimientos | Conectado a la lista real del backend; filtros locales |
-| Metas | Conectado a las metas reales del usuario |
+| Movimientos | Consulta paginada, registro, eliminación, OCR y comprobantes conectados |
+| Metas | Consulta, creación, cambios de estado, aportes e historial conectados |
+| Cuentas y transferencias | Creación y estado de cuentas; transferencias, historial, edición y eliminación conectados |
+| Categorías | Consulta global y personal; creación, edición y eliminación de categorías personales |
+| Presupuestos | Consulta, creación, edición, estado y consumo conectados |
+| Suscripciones | Consulta, creación y cambio de estado conectados |
 | Asistente IA | Pendiente: el backend actual no expone un endpoint de consultas |
 
-Dashboard, movimientos y metas consultan datos reales. La creación y edición de movimientos o metas todavía no está disponible en las pantallas actuales.
+Las funciones financieras que ya ofrece el backend están agrupadas en la vista **Gestión** o disponibles desde sus pantallas existentes. Los filtros de movimientos siguen aplicándose en el frontend sobre los registros paginados recuperados.
 
 ## Tecnologías
 
@@ -133,6 +138,7 @@ FinancIA-Frontend/
         ├── DashboardView.tsx
         ├── MovimientosView.tsx
         ├── MetasView.tsx
+        ├── GestionView.tsx # Cuentas, transferencias, categorías, presupuestos y suscripciones
         └── AsistenteView.tsx
 ```
 
@@ -146,9 +152,16 @@ FinancIA-Frontend/
 | POST | `/api/v1/auth/2fa/confirm` | Confirma el código y activa el 2FA |
 | POST | `/api/v1/auth/verify-2fa` | Segundo paso del inicio de sesión |
 | GET | `/api/v1/users/me` | Datos del usuario autenticado |
+| PUT | `/api/v1/users/me/password` | Cambio de contraseña |
+| DELETE | `/api/v1/users/me` | Suspensión de la cuenta |
 | GET | `/api/v1/user/dashboard?from=YYYY-MM-DD` | Resumen financiero del periodo |
-| GET | `/api/v1/movements/my-movements` | Movimientos paginados del usuario |
-| GET | `/api/v1/objectives` | Metas financieras paginadas del usuario |
+| GET, POST, DELETE | `/api/v1/movements/...` | Consulta, registro, eliminación y comprobantes |
+| POST | `/api/v1/voucher/analyzer` | Análisis OCR de comprobantes |
+| GET, POST, PUT | `/api/v1/objectives/...` | Metas, estados, aportes e historial |
+| GET, POST, PUT | `/api/v1/accounts/...` | Cuentas y transferencias entre cuentas |
+| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Categorías globales y personales |
+| GET, POST, PUT, PATCH | `/api/v1/budgets/...` | Presupuestos, estado y consumo |
+| GET, POST, PUT | `/api/v1/subscriptions/...` | Suscripciones y estado |
 
 ## Autenticación y 2FA
 
@@ -161,6 +174,8 @@ FinancIA-Frontend/
 - **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. La configuración de nginx de la imagen Docker hace lo mismo. Fuera de esos dos casos, el backend debe corregir su configuración de CORS.
 - **Estado del 2FA.** El endpoint `/api/v1/users/me` aún no indica si el usuario tiene el 2FA activo. El frontend lo deduce de la respuesta del inicio de sesión y lo guarda en el navegador. Cuando el backend exponga ese dato, conviene leerlo directamente de ahí.
 - **Desactivar el 2FA.** El backend no ofrece todavía un endpoint para desactivarlo.
+- **Asistente IA.** El backend todavía no expone un endpoint para consultas conversacionales.
+- **Fecha en movimientos.** El analizador de comprobantes devuelve una fecha detectada, pero el endpoint de creación de movimientos no permite asignarla; la interfaz muestra el dato sin aplicarlo.
 
 
 Proyecto del curso de Ingeniería de Software, 2026.
