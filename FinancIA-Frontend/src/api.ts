@@ -381,12 +381,48 @@ export function uploadMovementReceipt(id: string, file: File) {
   })
 }
 
+async function prepareVoucherForAnalysis(file: File) {
+  if (!file.type.startsWith('image/')) return file
+
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(file)
+  } catch {
+    throw new Error('No se pudo leer la imagen para prepararla para el análisis.')
+  }
+
+  try {
+    const scale = Math.min(768 / bitmap.width, 1536 / bitmap.height, 1)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('No se pudo preparar la imagen para el análisis.')
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+
+    const compressed = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('No se pudo comprimir la imagen para el análisis.')),
+        'image/jpeg',
+        0.82,
+      )
+    })
+    const fileName = file.name.replace(/\.[^.]+$/, '') || file.name
+    return new File([compressed], `${fileName}.jpg`, { type: 'image/jpeg', lastModified: file.lastModified })
+  } finally {
+    bitmap.close()
+  }
+}
+
 export function analyzeVoucher(file: File) {
   const formData = new FormData()
-  formData.append('file', file)
-  return request<VoucherAnalysis>('/api/v1/voucher/analyzer', {
-    method: 'POST',
-    body: formData,
+  return prepareVoucherForAnalysis(file).then((preparedFile) => {
+    formData.append('file', preparedFile)
+    return request<VoucherAnalysis>('/api/v1/voucher/analyzer', {
+      method: 'POST',
+      body: formData,
+    })
   })
 }
 

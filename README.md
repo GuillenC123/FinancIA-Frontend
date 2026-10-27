@@ -182,6 +182,7 @@ Las notificaciones se reciben por `ws://localhost:8080/ws/notifications?token=<J
 - **Asistente IA.** La pantalla es solo una vista previa; no hay un endpoint de chat conectado todavía.
 - **Notificaciones.** El backend las entrega solo en tiempo real mientras el usuario mantiene abierta la aplicación; no existe un endpoint de historial.
 - **Tomar foto.** La opción usa la captura de cámara que ofrece el navegador/dispositivo; la disponibilidad depende del equipo y de sus permisos.
+- **Análisis de comprobantes.** Antes de enviarla al analizador, cada imagen se ajusta hasta 768 × 1536 píxeles y se comprime como JPEG. El comprobante original no se modifica al adjuntarlo al movimiento; los archivos que no son imágenes se envían sin conversión.
 - **Fecha en movimientos.** El analizador de comprobantes devuelve una fecha detectada, pero el endpoint de creación de movimientos no permite asignarla; la interfaz muestra el dato sin aplicarlo.
 
 
