@@ -21,7 +21,9 @@ Este repositorio contiene el **frontend**. El backend (Java, Spring Boot, WebFlu
 | Categorías | Consulta global y personal; creación, edición y eliminación de categorías personales |
 | Presupuestos | Consulta, creación, edición, estado y consumo conectados |
 | Suscripciones | Consulta, creación y cambio de estado conectados |
-| Asistente IA | Pendiente: el backend actual no expone un endpoint de consultas |
+| Notificaciones | Recibidas en tiempo real mediante WebSocket autenticado |
+| Comprobantes | Se pueden adjuntar desde archivo o tomar una foto desde un dispositivo compatible |
+| Asistente IA | Vista de próximamente; todavía no conversa con el backend |
 
 Las funciones financieras que ya ofrece el backend están agrupadas en la vista **Gestión** o disponibles desde sus pantallas existentes. Los filtros de movimientos siguen aplicándose en el frontend sobre los registros paginados recuperados.
 
@@ -119,7 +121,7 @@ El nombre por defecto del volumen es `financia_postgres_data`; confirma el nombr
 ```
 FinancIA-Frontend/
 ├── index.html
-├── vite.config.js        # Proxy de /api hacia el backend
+├── vite.config.js        # Proxy de /api y /ws hacia el backend
 ├── .env.example
 └── src/
     ├── main.tsx          # Punto de entrada
@@ -130,7 +132,8 @@ FinancIA-Frontend/
     ├── format.ts         # Formato de fechas y moneda
     ├── components/
     │   ├── Sidebar.tsx   # Menú lateral y menú del perfil
-    │   └── Modals.tsx    # Nueva consulta, detalles y activación de 2FA
+    │   ├── Modals.tsx    # Nueva consulta, detalles y activación de 2FA
+    │   └── Notifications.tsx # Recepción y avisos WebSocket
     └── pages/
         ├── AuthView.tsx  # Contenedor de inicio de sesión y registro
         ├── LoginView.tsx
@@ -163,6 +166,8 @@ FinancIA-Frontend/
 | GET, POST, PUT, PATCH | `/api/v1/budgets/...` | Presupuestos, estado y consumo |
 | GET, POST, PUT | `/api/v1/subscriptions/...` | Suscripciones y estado |
 
+Las notificaciones se reciben por `ws://localhost:8080/ws/notifications?token=<JWT>` (o `wss://` en HTTPS). En desarrollo, Vite reenvía `/ws` al backend; nginx hace lo mismo en la imagen Docker.
+
 ## Autenticación y 2FA
 
 1. Al iniciar sesión o registrarse, el backend devuelve un token JWT que se guarda en `localStorage` y se envía en la cabecera `Authorization` de cada petición.
@@ -174,7 +179,9 @@ FinancIA-Frontend/
 - **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. La configuración de nginx de la imagen Docker hace lo mismo. Fuera de esos dos casos, el backend debe corregir su configuración de CORS.
 - **Estado del 2FA.** El endpoint `/api/v1/users/me` aún no indica si el usuario tiene el 2FA activo. El frontend lo deduce de la respuesta del inicio de sesión y lo guarda en el navegador. Cuando el backend exponga ese dato, conviene leerlo directamente de ahí.
 - **Desactivar el 2FA.** El backend no ofrece todavía un endpoint para desactivarlo.
-- **Asistente IA.** El backend todavía no expone un endpoint para consultas conversacionales.
+- **Asistente IA.** La pantalla es solo una vista previa; no hay un endpoint de chat conectado todavía.
+- **Notificaciones.** El backend las entrega solo en tiempo real mientras el usuario mantiene abierta la aplicación; no existe un endpoint de historial.
+- **Tomar foto.** La opción usa la captura de cámara que ofrece el navegador/dispositivo; la disponibilidad depende del equipo y de sus permisos.
 - **Fecha en movimientos.** El analizador de comprobantes devuelve una fecha detectada, pero el endpoint de creación de movimientos no permite asignarla; la interfaz muestra el dato sin aplicarlo.
 
 

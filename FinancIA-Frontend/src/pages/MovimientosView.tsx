@@ -1,19 +1,21 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   ArrowDownLeft,
   ArrowUpRight,
   Banknote,
   Bus,
+  Camera,
   CalendarDays,
   Check,
   ChevronDown,
-  Paperclip,
+  FileUp,
   PiggyBank,
   Plus,
   SearchX,
   Trash2,
   Utensils,
   Wallet,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import {
@@ -274,10 +276,13 @@ export function MovimientosView() {
               <label>Categoría<select name="categoryId" value={selectedCategory || categories[0]?.id || ''} onChange={(event) => setSelectedCategory(event.target.value)} required>{categories.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.type}</option>)}</select></label>
               <label>Monto<input name="amount" type="number" min="0.01" step="0.01" value={movementAmount} onChange={(event) => setMovementAmount(event.target.value)} required /></label>
               <label>Descripción<input name="description" value={movementDescription} onChange={(event) => setMovementDescription(event.target.value)} /></label>
-              <label>Comprobante<input type="file" accept="image/*,.pdf" onChange={(event) => {
-                setReceiptFile(event.currentTarget.files?.[0] ?? null)
-                setVoucher(null)
-              }} /></label>
+              <div>
+                <span className="receipt-label">Comprobante</span>
+                <ReceiptPicker file={receiptFile} onFile={(file) => {
+                  setReceiptFile(file)
+                  setVoucher(null)
+                }} />
+              </div>
               <button className="secondary-button" type="button" onClick={() => void analyzeReceipt()} disabled={!receiptFile || analyzingVoucher}>
                 {analyzingVoucher ? 'Analizando…' : 'Analizar comprobante'}
               </button>
@@ -369,12 +374,10 @@ export function MovimientosView() {
               </div>
               <div className={`amount ${kind}`}>{sign}{formatCurrency(Math.abs(movement.amount))}</div>
               <div className="movement-actions">
-                {movement.receiptUrl
-                  ? <a className="secondary-button" href={movement.receiptUrl} target="_blank" rel="noreferrer">Ver comprobante</a>
-                  : <label className="secondary-button file-button"><Paperclip size={15} aria-hidden="true" />Adjuntar<input type="file" accept="image/*,.pdf" onChange={(event) => {
-                      const file = event.currentTarget.files?.[0]
-                      if (file) void uploadReceipt(movement, file)
-                    }} /></label>}
+                {movement.receiptUrl && <a className="secondary-button" href={movement.receiptUrl} target="_blank" rel="noreferrer">Ver comprobante</a>}
+                <ReceiptPicker onFile={(file) => {
+                  if (file) void uploadReceipt(movement, file)
+                }} />
                 <button className="secondary-button" type="button" onClick={() => void removeMovement(movement)} aria-label="Eliminar movimiento">
                   <Trash2 size={15} aria-hidden="true" />
                 </button>
@@ -420,6 +423,43 @@ function FilterMenu({ label, value, displayValue, options, isOpen, onToggle, onS
             </button>
           ))}
         </div>
+      )}
+    </div>
+  )
+}
+
+function ReceiptPicker({ file, onFile }: {
+  file?: File | null
+  onFile: (file: File | null) => void
+}) {
+  const id = useId()
+  const fileInputId = `receipt-file-${id}`
+  const cameraInputId = `receipt-camera-${id}`
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget
+    onFile(input.files?.[0] ?? null)
+    input.value = ''
+  }
+
+  return (
+    <div className="receipt-picker">
+      <input className="visually-hidden-file" id={fileInputId} type="file" accept="image/*,.pdf" onChange={handleChange} />
+      <label className="secondary-button receipt-option" htmlFor={fileInputId}>
+        <FileUp size={15} aria-hidden="true" />
+        Subir archivo
+      </label>
+      <input className="visually-hidden-file" id={cameraInputId} type="file" accept="image/*" capture="environment" onChange={handleChange} />
+      <label className="secondary-button receipt-option" htmlFor={cameraInputId}>
+        <Camera size={15} aria-hidden="true" />
+        Tomar foto
+      </label>
+      {file && (
+        <span className="receipt-selected">
+          {file.name}
+          <button type="button" onClick={() => onFile(null)} aria-label="Quitar comprobante seleccionado">
+            <X size={14} aria-hidden="true" />
+          </button>
+        </span>
       )}
     </div>
   )

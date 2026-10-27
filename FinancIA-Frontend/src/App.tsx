@@ -11,6 +11,7 @@ import {
 } from './api'
 import { Sidebar } from './components/Sidebar'
 import { ConsultationModal, DetailsModal, ProfileSettingsModal, TwoFactorModal } from './components/Modals'
+import { Notifications } from './components/Notifications'
 import { AuthView } from './pages/AuthView'
 import { AsistenteView } from './pages/AsistenteView'
 import { DashboardView } from './pages/DashboardView'
@@ -136,6 +137,7 @@ function App() {
           }}
         />
       )}
+      <Notifications token={token} />
       {toast && <div className="toast-message">{toast}</div>}
     </div>
   )

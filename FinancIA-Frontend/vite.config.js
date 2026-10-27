@@ -16,6 +16,11 @@ export default defineConfig({
           proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
         },
       },
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
 })

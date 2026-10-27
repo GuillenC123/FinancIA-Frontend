@@ -2,6 +2,14 @@ const API_BASE_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const TOKEN_KEY = 'financia_token'
 const TWO_FACTOR_KEY = 'financia_2fa'
 
+export type NotificationMessage = {
+  type: string
+  header: string
+  body: string
+  timestamp: string
+  data?: Record<string, unknown>
+}
+
 export type RegisterPayload = {
   name: string
   lastName: string
@@ -254,6 +262,15 @@ function getBackendError(payload: unknown, status: number) {
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
+}
+
+export function getNotificationsWebSocketUrl(token: string) {
+  const baseUrl = new URL(API_BASE_URL || window.location.origin, window.location.origin)
+  baseUrl.protocol = baseUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+  baseUrl.pathname = '/ws/notifications'
+  baseUrl.search = ''
+  baseUrl.searchParams.set('token', token)
+  return baseUrl.toString()
 }
 
 export function saveToken(token: string) {
