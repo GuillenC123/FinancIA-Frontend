@@ -34,6 +34,7 @@ const statusLabels: Record<FinancialObjective['status'], string> = {
   PAUSADA: 'Pausada',
   REANUDADA: 'Reanudada',
   COMPLETADA: 'Completada',
+  FINALIZADA: 'Finalizada',
   CANCELADA: 'Cancelada',
 }
 
@@ -88,7 +89,7 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
     }
   }, [reloadCount])
 
-  const activeGoals = goals.filter((goal) => !['COMPLETADA', 'CANCELADA', 'PAUSADA'].includes(goal.status))
+  const activeGoals = goals.filter((goal) => !['COMPLETADA', 'FINALIZADA', 'CANCELADA', 'PAUSADA'].includes(goal.status))
   const retry = () => {
     setLoading(true)
     setError('')
@@ -100,7 +101,7 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
   const savingsCategories = categories.filter((category) => category.type === 'AHORRO')
   const availableStates = (status: FinancialObjective['status']): FinancialObjective['status'][] => {
     if (status === 'INICIADA') return ['EN_PROCESO']
-    if (status === 'EN_PROCESO') return ['PAUSADA', 'COMPLETADA', 'CANCELADA']
+    if (status === 'EN_PROCESO') return ['PAUSADA', 'COMPLETADA', 'FINALIZADA', 'CANCELADA']
     if (status === 'PAUSADA') return ['REANUDADA']
     if (status === 'REANUDADA') return ['EN_PROCESO']
     return []
@@ -331,7 +332,7 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
                           </select>
                         </label>
                       )}
-                      {!['COMPLETADA', 'CANCELADA', 'PAUSADA'].includes(goal.status) && (
+                      {!['COMPLETADA', 'FINALIZADA', 'CANCELADA', 'PAUSADA'].includes(goal.status) && (
                         <button className="secondary-button" type="button" onClick={() => setContributingTo(contributingTo === goal.id ? null : goal.id)}>
                           {contributingTo === goal.id ? 'Cancelar aporte' : 'Registrar aporte'}
                         </button>

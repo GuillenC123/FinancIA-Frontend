@@ -129,7 +129,7 @@ export type FinancialObjective = {
   percentageProgress: number
   startDate: string
   targetDate: string
-  status: 'INICIADA' | 'EN_PROCESO' | 'PAUSADA' | 'REANUDADA' | 'COMPLETADA' | 'CANCELADA'
+  status: 'INICIADA' | 'EN_PROCESO' | 'PAUSADA' | 'REANUDADA' | 'COMPLETADA' | 'FINALIZADA' | 'CANCELADA'
 }
 
 export type Account = {
