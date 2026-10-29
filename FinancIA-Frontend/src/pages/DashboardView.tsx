@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, PiggyBank, type LucideIcon } from 'lucide-react'
-import { getDashboardSummary, type DashboardSummary } from '../api'
+import {
+  getDashboardSummary,
+  getExpensesByCategory,
+  getFinancialEvolution,
+  type DashboardSummary,
+  type ExpensesByCategory,
+  type FinancialEvolution,
+} from '../api'
 import { formatCurrency } from '../format'
 
 type DashboardViewProps = {
@@ -20,6 +27,20 @@ function getMonthStart() {
   return `${today.getFullYear()}-${month}-01`
 }
 
+function getToday() {
+  const today = new Date()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${today.getFullYear()}-${month}-${day}`
+}
+
+function formatMonth(value: string) {
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('es-PE', { month: 'short' }).format(date)
+}
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'No se pudo cargar el resumen financiero.'
 }
@@ -29,6 +50,10 @@ export function DashboardView({ userName, onOpenDetails }: DashboardViewProps) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [reloadCount, setReloadCount] = useState(0)
+  const [evolution, setEvolution] = useState<FinancialEvolution | null>(null)
+  const [expensesByCategory, setExpensesByCategory] = useState<ExpensesByCategory | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
+  const [analyticsError, setAnalyticsError] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -44,6 +69,26 @@ export function DashboardView({ userName, onOpenDetails }: DashboardViewProps) {
         if (!cancelled) setLoading(false)
       })
 
+    Promise.all([
+      getFinancialEvolution()
+        .then((data) => {
+          if (!cancelled) setEvolution(data)
+          return ''
+        })
+        .catch((requestError: unknown) => errorMessage(requestError)),
+      getExpensesByCategory(getMonthStart(), getToday())
+        .then((data) => {
+          if (!cancelled) setExpensesByCategory(data)
+          return ''
+        })
+        .catch((requestError: unknown) => errorMessage(requestError)),
+    ]).then((errors) => {
+      if (cancelled) return
+      const failures = errors.filter(Boolean)
+      if (failures.length) setAnalyticsError(failures.join(' '))
+      setAnalyticsLoading(false)
+    })
+
     return () => {
       cancelled = true
     }
@@ -53,6 +98,8 @@ export function DashboardView({ userName, onOpenDetails }: DashboardViewProps) {
   const retry = () => {
     setLoading(true)
     setError('')
+    setAnalyticsLoading(true)
+    setAnalyticsError('')
     setReloadCount((count) => count + 1)
   }
   const cards = financialSummary
@@ -77,6 +124,9 @@ export function DashboardView({ userName, onOpenDetails }: DashboardViewProps) {
     : expenseVariation < 0
       ? `Tus gastos bajaron ${Math.abs(expenseVariation).toFixed(1)}% frente al periodo anterior.`
       : `Tus gastos subieron ${expenseVariation.toFixed(1)}% frente al periodo anterior.`
+  const maxEvolutionValue = evolution
+    ? Math.max(...evolution.periods.flatMap((period) => [period.totalIncome, period.totalExpenses]), 1)
+    : 1
 
   return (
     <>
@@ -146,6 +196,72 @@ export function DashboardView({ userName, onOpenDetails }: DashboardViewProps) {
                 <span style={{ width: `${Math.min(Math.max(goalsProgress, 0), 100)}%` }} />
               </div>
               <p>Progreso general: {goalsProgress.toFixed(1)}%</p>
+            </div>
+          </section>
+
+          <section className="analytics-grid dashboard-history" aria-label="Evolución y gastos por categoría">
+            <div className="panel-card chart-panel">
+              <h3>Evolución financiera</h3>
+              <div className="dashboard-legend" aria-label="Leyenda">
+                <span><i className="income" />Ingresos</span>
+                <span><i className="expense" />Gastos</span>
+              </div>
+              {analyticsLoading && <p className="empty-state" role="status">Cargando evolución…</p>}
+              {evolution && evolution.periods.length === 0 && !analyticsLoading && (
+                <p className="empty-state">Aún no hay datos de evolución.</p>
+              )}
+              {evolution && evolution.periods.length > 0 && (
+                <div className="evolution-list">
+                  {evolution.periods.map((period) => (
+                    <div className="evolution-row" key={period.period}>
+                      <strong>{formatMonth(period.period)}</strong>
+                      <div className="evolution-bars">
+                        <span className="income" style={{ width: `${Math.max(0, period.totalIncome / maxEvolutionValue * 100)}%` }} />
+                        <span className="expense" style={{ width: `${Math.max(0, period.totalExpenses / maxEvolutionValue * 100)}%` }} />
+                      </div>
+                      <small>
+                        +{formatCurrency(period.totalIncome, evolution.currency)}
+                        <br />
+                        −{formatCurrency(period.totalExpenses, evolution.currency)}
+                      </small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="panel-card chart-panel">
+              <h3>Gastos por categoría</h3>
+              {analyticsLoading && <p className="empty-state" role="status">Cargando categorías…</p>}
+              {expensesByCategory && (
+                <>
+                  <p>Total del periodo: {formatCurrency(expensesByCategory.totalExpenses, expensesByCategory.currency)}</p>
+                  {expensesByCategory.categories.length === 0
+                    ? <p className="empty-state">No hay gastos registrados en este periodo.</p>
+                    : (
+                      <div className="expense-category-list">
+                        {expensesByCategory.categories.map((category) => (
+                          <div className="expense-category-row" key={category.categoryId}>
+                            <div>
+                              <strong>{category.name}</strong>
+                              <small>{Number.isFinite(category.procentage) ? `${category.procentage.toFixed(1)}%` : '—'}</small>
+                            </div>
+                            <strong>{formatCurrency(category.amount, expensesByCategory.currency)}</strong>
+                            <div className="meta-progress" aria-hidden="true">
+                              <span style={{ width: `${Math.min(Math.max(category.procentage || 0, 0), 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                </>
+              )}
+              {analyticsError && (
+                <div className="analytics-error" role="alert">
+                  <span>{analyticsError}</span>
+                  <button className="secondary-button" type="button" onClick={retry}>Reintentar</button>
+                </div>
+              )}
             </div>
           </section>
 

@@ -70,6 +70,26 @@ export type DashboardSummary = {
   }
 }
 
+export type FinancialEvolution = {
+  currency: string
+  periods: Array<{
+    period: string
+    totalIncome: number
+    totalExpenses: number
+  }>
+}
+
+export type ExpensesByCategory = {
+  totalExpenses: number
+  currency: string
+  categories: Array<{
+    categoryId: string
+    name: string
+    amount: number
+    procentage: number
+  }>
+}
+
 export type PaginationResponse<T> = {
   content: T[]
   pageNum: number
@@ -331,12 +351,29 @@ export function getDashboardSummary(from: string) {
   return request<DashboardSummary>(`/api/v1/user/dashboard/sumary?from=${encodeURIComponent(from)}`)
 }
 
+export function getFinancialEvolution() {
+  return request<FinancialEvolution>('/api/v1/user/dashboard/evolution')
+}
+
+export function getExpensesByCategory(from: string, until: string) {
+  const query = new URLSearchParams({ from, until })
+  return request<ExpensesByCategory>(`/api/v1/user/dashboard/expenses-category?${query}`)
+}
+
 export function getMovements() {
   return getAllPages<Movement>('/api/v1/movements/my-movements', 'date_issue')
 }
 
+export function getMovement(id: string) {
+  return request<Movement>(`/api/v1/movements/my-movements/${encodeURIComponent(id)}`)
+}
+
 export function getFinancialObjectives() {
   return getAllPages<FinancialObjective>('/api/v1/objectives', 'startDate')
+}
+
+export function getFinancialObjective(id: string) {
+  return request<FinancialObjective>(`/api/v1/objectives/${encodeURIComponent(id)}`)
 }
 
 async function getAllPages<T>(path: string, sortBy: string): Promise<PaginationResponse<T>> {
@@ -461,8 +498,16 @@ export function getObjectiveContributions(id: string) {
   return getAllPages<Contribution>(`/api/v1/objectives/contributions/objective/${encodeURIComponent(id)}`, 'date')
 }
 
+export function getObjectiveContribution(id: string) {
+  return request<Contribution>(`/api/v1/objectives/contributions/${encodeURIComponent(id)}`)
+}
+
 export function getAccounts() {
   return request<Account[]>('/api/v1/accounts/my-accounts')
+}
+
+export function getAccount(id: string) {
+  return request<Account>(`/api/v1/accounts/my-account/${encodeURIComponent(id)}`)
 }
 
 export function createAccount(payload: {
@@ -496,6 +541,17 @@ export function getTransfers() {
   return getAllPages<Transfer>('/api/v1/transfers/my-transfers', 'fecha_creacion')
 }
 
+export function getTransfersByAccount(accountId: string) {
+  return getAllPages<Transfer>(
+    `/api/v1/transfers/my-transfers/account/${encodeURIComponent(accountId)}`,
+    'fecha_creacion',
+  )
+}
+
+export function getTransfer(id: string) {
+  return request<Transfer>(`/api/v1/transfers/my-transfers/${encodeURIComponent(id)}`)
+}
+
 export function updateTransfer(id: string, payload: { newAmount: number; newDescription: string }) {
   return request<void>(`/api/v1/transfers/my-transfers/${encodeURIComponent(id)}`, {
     method: 'PUT',
@@ -509,6 +565,16 @@ export function deleteTransfer(id: string) {
 
 export function getGlobalCategories() {
   return request<FinancialCategory[]>('/api/v1/categories/global')
+}
+
+export function createGlobalCategory(payload: {
+  name: string
+  type: FinancialCategory['type']
+}) {
+  return request<FinancialCategory>('/api/v1/categories/global', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }
 
 export function getUserCategories() {
@@ -553,6 +619,10 @@ export function getBudgets() {
   return request<Budget[]>('/api/v1/budgets')
 }
 
+export function getBudget(id: string) {
+  return request<Budget>(`/api/v1/budgets/${encodeURIComponent(id)}`)
+}
+
 export function createBudget(payload: {
   name: string
   periodStart: string
@@ -592,6 +662,10 @@ export function getBudgetConsumption(id: string) {
 
 export function getSubscriptions() {
   return request<Subscription[]>('/api/v1/subscriptions/my-subs')
+}
+
+export function getSubscription(id: string) {
+  return request<Subscription>(`/api/v1/subscriptions/my-subs/${encodeURIComponent(id)}`)
 }
 
 export function createSubscription(payload: {

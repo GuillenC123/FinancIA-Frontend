@@ -108,10 +108,10 @@ function App() {
       <main className="content-panel">
         {userError && <div className="auth-feedback error" role="alert">{userError}</div>}
         {activeView === 'inicio' && <DashboardView userName={user?.name} onOpenDetails={openDetails} />}
-        {activeView === 'movimientos' && <MovimientosView />}
+        {activeView === 'movimientos' && <MovimientosView onOpenDetails={openDetails} />}
         {activeView === 'asistente' && <AsistenteView />}
         {activeView === 'metas' && <MetasView onOpenDetails={openDetails} />}
-        {activeView === 'gestion' && <GestionView />}
+        {activeView === 'gestion' && <GestionView isAdmin={user?.role === 'ADMIN'} onOpenDetails={openDetails} />}
       </main>
 
       {modal?.type === 'consultation' && (

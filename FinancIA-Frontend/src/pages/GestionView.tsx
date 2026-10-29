@@ -4,18 +4,24 @@ import {
   changeBudgetStatus,
   createAccount,
   createBudget,
+  createGlobalCategory,
   createSubscription,
   createTransfer,
   createUserCategory,
   deleteTransfer,
   deleteUserCategory,
   getAccounts,
+  getAccount,
   getBudgets,
+  getBudget,
   getBudgetConsumption,
   getCategory,
   getGlobalCategories,
   getSubscriptions,
+  getSubscription,
+  getTransfer,
   getTransfers,
+  getTransfersByAccount,
   getUserCategories,
   toggleSubscription,
   updateBudget,
@@ -39,7 +45,10 @@ const sections: Array<{ id: Section; label: string }> = [
   { id: 'suscripciones', label: 'Suscripciones' },
 ]
 
-export function GestionView() {
+export function GestionView({ isAdmin, onOpenDetails }: {
+  isAdmin: boolean
+  onOpenDetails: (title: string, content: string) => void
+}) {
   const [section, setSection] = useState<Section>('cuentas')
 
   return (
@@ -61,15 +70,17 @@ export function GestionView() {
           </button>
         ))}
       </div>
-      {section === 'cuentas' && <AccountsPanel />}
-      {section === 'presupuestos' && <BudgetsPanel />}
-      {section === 'categorias' && <CategoriesPanel />}
-      {section === 'suscripciones' && <SubscriptionsPanel />}
+      {section === 'cuentas' && <AccountsPanel onOpenDetails={onOpenDetails} />}
+      {section === 'presupuestos' && <BudgetsPanel onOpenDetails={onOpenDetails} />}
+      {section === 'categorias' && <CategoriesPanel isAdmin={isAdmin} />}
+      {section === 'suscripciones' && <SubscriptionsPanel onOpenDetails={onOpenDetails} />}
     </>
   )
 }
 
-function AccountsPanel() {
+function AccountsPanel({ onOpenDetails }: {
+  onOpenDetails: (title: string, content: string) => void
+}) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [transfers, setTransfers] = useState<Transfer[]>([])
   const [error, setError] = useState('')
@@ -78,18 +89,17 @@ function AccountsPanel() {
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
   const [sourceAccount, setSourceAccount] = useState('')
   const [destinationAccount, setDestinationAccount] = useState('')
+  const [selectedTransferAccount, setSelectedTransferAccount] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([getAccounts(), getTransfers()])
-      .then(([accountData, transferData]) => {
+    getAccounts()
+      .then((accountData) => {
         if (!cancelled) {
           setAccounts(accountData)
-          setTransfers(transferData.content)
           const activeAccounts = accountData.filter((account) => account.active)
           setSourceAccount(activeAccounts[0]?.id ?? '')
           setDestinationAccount(activeAccounts[1]?.id ?? '')
-          setError('')
         }
       })
       .catch((requestError: unknown) => {
@@ -97,6 +107,24 @@ function AccountsPanel() {
       })
     return () => { cancelled = true }
   }, [reload])
+
+  useEffect(() => {
+    let cancelled = false
+    const loadTransfers = selectedTransferAccount
+      ? getTransfersByAccount(selectedTransferAccount)
+      : getTransfers()
+    loadTransfers
+      .then((transferData) => {
+        if (!cancelled) {
+          setTransfers(transferData.content)
+          setError('')
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (!cancelled) setError(message(requestError, 'No se pudieron cargar las transferencias.'))
+      })
+    return () => { cancelled = true }
+  }, [reload, selectedTransferAccount])
 
   const submitAccount = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -151,6 +179,38 @@ function AccountsPanel() {
     await mutate(() => deleteTransfer(transfer.id), setError, () => setReload((value) => value + 1))
   }
 
+  const showAccountDetails = async (accountId: string) => {
+    setError('')
+    try {
+      const account = await getAccount(accountId)
+      onOpenDetails(
+        account.name,
+        `Tipo: ${account.type.replaceAll('_', ' ')}. Saldo actual: ${formatCurrency(account.currentBalance)}. Estado: ${account.active ? 'Activa' : 'Inactiva'}. Creada: ${formatDate(account.creationDate)}.`,
+      )
+    } catch (requestError) {
+      setError(message(requestError, 'No se pudo cargar el detalle de la cuenta.'))
+    }
+  }
+
+  const showTransferDetails = async (transferId: string) => {
+    setError('')
+    try {
+      const transfer = await getTransfer(transferId)
+      onOpenDetails(
+        'Detalle de transferencia',
+        [
+          `Origen: ${transfer.accountOrigin.name}`,
+          `Destino: ${transfer.accountDestination.name}`,
+          `Monto: ${formatCurrency(transfer.amount)}`,
+          `Fecha: ${formatDate(transfer.creationDate)}`,
+          `Descripción: ${transfer.description || 'Sin descripción.'}`,
+        ].join('\n'),
+      )
+    } catch (requestError) {
+      setError(message(requestError, 'No se pudo cargar el detalle de la transferencia.'))
+    }
+  }
+
   return (
     <section className="management-layout">
       {error && <div className="auth-feedback error" role="alert">{error}</div>}
@@ -167,6 +227,7 @@ function AccountsPanel() {
             <div className="management-row" key={account.id}>
               <div><strong>{account.name}</strong><small>{account.type.replaceAll('_', ' ')} · {account.active ? 'Activa' : 'Inactiva'}</small></div>
               <strong>{formatCurrency(account.currentBalance)}</strong>
+              <button className="secondary-button" type="button" onClick={() => void showAccountDetails(account.id)}>Detalle</button>
               {account.active && <button className="secondary-button" type="button" onClick={() => toggleAccount(account)}>Desactivar</button>}
             </div>
           ))}
@@ -191,6 +252,13 @@ function AccountsPanel() {
       </Panel>
 
       <Panel title="Historial de transferencias">
+        <label className="management-filter">
+          Cuenta
+          <select value={selectedTransferAccount} onChange={(event) => setSelectedTransferAccount(event.target.value)}>
+            <option value="">Todas las cuentas</option>
+            {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+          </select>
+        </label>
         {transfers.length === 0 && <p className="empty-state">Aún no hay transferencias.</p>}
         {transfers.map((transfer) => editingTransfer === transfer.id
           ? <TransferEdit key={transfer.id} transfer={transfer} onCancel={() => setEditingTransfer(null)} onSave={async (values) => {
@@ -203,6 +271,7 @@ function AccountsPanel() {
             <div className="management-row" key={transfer.id}>
               <div><strong>{transfer.accountOrigin.name} → {transfer.accountDestination.name}</strong><small>{formatDate(transfer.creationDate)} · {transfer.description || 'Sin descripción'}</small></div>
               <strong>{formatCurrency(transfer.amount)}</strong>
+              <button className="secondary-button" type="button" onClick={() => void showTransferDetails(transfer.id)}>Detalle</button>
               <button className="secondary-button" type="button" onClick={() => setEditingTransfer(transfer.id)}>Editar</button>
               <button className="secondary-button" type="button" onClick={() => removeTransfer(transfer)}>Eliminar</button>
             </div>
@@ -234,7 +303,9 @@ function TransferEdit({ transfer, onCancel, onSave }: {
   )
 }
 
-function BudgetsPanel() {
+function BudgetsPanel({ onOpenDetails }: {
+  onOpenDetails: (title: string, content: string) => void
+}) {
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [categories, setCategories] = useState<FinancialCategory[]>([])
   const [consumption, setConsumption] = useState<Record<string, BudgetConsumption>>({})
@@ -300,6 +371,24 @@ function BudgetsPanel() {
     }
   }
 
+  const showBudgetDetails = async (id: string) => {
+    setError('')
+    try {
+      const budget = await getBudget(id)
+      onOpenDetails(
+        budget.name,
+        [
+          `Periodo: ${formatDate(budget.periodStart)} – ${formatDate(budget.periodEnd)}`,
+          `Límite total: ${formatCurrency(budget.amountLimitTotal)}`,
+          `Estado: ${budget.active ? 'Activo' : 'Inactivo'}`,
+          `Límites por categoría: ${budget.categories.length}`,
+        ].join('\n'),
+      )
+    } catch (requestError) {
+      setError(message(requestError, 'No se pudo cargar el detalle del presupuesto.'))
+    }
+  }
+
   const toggle = async (budget: Budget) => {
     await mutate(() => changeBudgetStatus(budget.id, !budget.active), setError, () => setReload((value) => value + 1))
   }
@@ -327,6 +416,7 @@ function BudgetsPanel() {
             <div className="management-row">
               <div><strong>{budget.name}</strong><small>{formatDate(budget.periodStart)} – {formatDate(budget.periodEnd)} · {budget.active ? 'Activo' : 'Inactivo'}</small></div>
               <strong>{formatCurrency(budget.amountLimitTotal)}</strong>
+              <button className="secondary-button" type="button" onClick={() => void showBudgetDetails(budget.id)}>Detalle</button>
               <button className="secondary-button" type="button" onClick={() => showConsumption(budget.id)}>Ver consumo</button>
               <button className="secondary-button" type="button" onClick={() => toggle(budget)}>{budget.active ? 'Desactivar' : 'Activar'}</button>
               <button className="secondary-button" type="button" onClick={() => setEditingBudget(budget)}>Editar</button>
@@ -350,7 +440,7 @@ function BudgetsPanel() {
   )
 }
 
-function CategoriesPanel() {
+function CategoriesPanel({ isAdmin }: { isAdmin: boolean }) {
   const [globalCategories, setGlobalCategories] = useState<FinancialCategory[]>([])
   const [userCategories, setUserCategories] = useState<FinancialCategory[]>([])
   const [error, setError] = useState('')
@@ -399,6 +489,26 @@ function CategoriesPanel() {
     }
   }
 
+  const saveGlobalCategory = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
+    setBusy(true)
+    setError('')
+    try {
+      await createGlobalCategory({
+        name: String(form.get('name')),
+        type: String(form.get('type')) as FinancialCategory['type'],
+      })
+      formElement.reset()
+      setReload((value) => value + 1)
+    } catch (requestError) {
+      setError(message(requestError, 'No se pudo crear la categoría global.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const remove = async (category: FinancialCategory) => {
     if (!window.confirm(`¿Eliminar la categoría «${category.name}»?`)) return
     await mutate(() => deleteUserCategory(category.id), setError, () => setReload((value) => value + 1))
@@ -416,6 +526,15 @@ function CategoriesPanel() {
   return (
     <section className="management-layout">
       {error && <div className="auth-feedback error" role="alert">{error}</div>}
+      {isAdmin && (
+        <Panel title="Crear categoría global">
+          <form className="management-form" onSubmit={saveGlobalCategory}>
+            <label>Nombre (mínimo 5 caracteres)<input name="name" minLength={5} required /></label>
+            <label>Tipo<select name="type" defaultValue="GASTOS"><option value="INGRESOS">Ingresos</option><option value="GASTOS">Gastos</option><option value="AHORRO">Ahorro</option></select></label>
+            <button className="modal-primary" type="submit" disabled={busy}>Crear categoría global</button>
+          </form>
+        </Panel>
+      )}
       <Panel title={editingCategory ? 'Editar categoría personal' : 'Crear categoría personal'}>
         <form className="management-form" key={editingCategory?.id ?? 'new-category'} onSubmit={saveCategory}>
           <label>Nombre (mínimo 5 caracteres)<input name="name" minLength={5} defaultValue={editingCategory?.name} required /></label>
@@ -442,7 +561,9 @@ function CategoriesPanel() {
   )
 }
 
-function SubscriptionsPanel() {
+function SubscriptionsPanel({ onOpenDetails }: {
+  onOpenDetails: (title: string, content: string) => void
+}) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<FinancialCategory[]>([])
@@ -496,6 +617,19 @@ function SubscriptionsPanel() {
     await mutate(() => toggleSubscription(subscription.id), setError, () => setReload((value) => value + 1))
   }
 
+  const showSubscriptionDetails = async (id: string) => {
+    setError('')
+    try {
+      const subscription = await getSubscription(id)
+      onOpenDetails(
+        subscription.name,
+        `Monto: ${formatCurrency(subscription.amount)}. Tipo: ${subscription.type}. Periodicidad: ${subscription.frequency}. Próximo pago: ${formatDate(subscription.dateNextPayment)}. Estado: ${subscription.active ? 'Activa' : 'Pausada'}.`,
+      )
+    } catch (requestError) {
+      setError(message(requestError, 'No se pudo cargar el detalle del pago recurrente.'))
+    }
+  }
+
   return (
     <section className="management-layout">
       {error && <div className="auth-feedback error" role="alert">{error}</div>}
@@ -517,6 +651,7 @@ function SubscriptionsPanel() {
           <div className="management-row" key={subscription.id}>
             <div><strong>{subscription.name}</strong><small>{subscription.frequency} · Próximo pago: {formatDate(subscription.dateNextPayment)} · {subscription.active ? 'Activa' : 'Pausada'}</small></div>
             <strong>{formatCurrency(subscription.amount)}</strong>
+            <button className="secondary-button" type="button" onClick={() => void showSubscriptionDetails(subscription.id)}>Detalle</button>
             <button className="secondary-button" type="button" onClick={() => toggle(subscription)}>{subscription.active ? 'Pausar' : 'Reanudar'}</button>
           </div>
         ))}

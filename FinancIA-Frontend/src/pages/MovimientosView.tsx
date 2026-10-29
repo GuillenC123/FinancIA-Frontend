@@ -24,6 +24,7 @@ import {
   deleteMovement,
   getAccounts,
   getGlobalCategories,
+  getMovement,
   getMovements,
   getUserCategories,
   uploadMovementReceipt,
@@ -72,7 +73,9 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'No se pudieron cargar los movimientos.'
 }
 
-export function MovimientosView() {
+export function MovimientosView({ onOpenDetails }: {
+  onOpenDetails: (title: string, content: string) => void
+}) {
   const [filter, setFilter] = useState<Filter>('all')
   const [account, setAccount] = useState('all')
   const [month, setMonth] = useState(currentMonthKey)
@@ -243,6 +246,27 @@ export function MovimientosView() {
     }
   }
 
+  const showMovementDetails = async (movementId: string) => {
+    setMutationError('')
+    try {
+      const movement = await getMovement(movementId)
+      onOpenDetails(
+        'Detalle del movimiento',
+        [
+          `Categoría: ${movement.category.name}`,
+          `Tipo: ${movement.category.type}`,
+          `Cuenta: ${movement.account.name}`,
+          `Monto: ${formatCurrency(movement.amount)}`,
+          `Fecha: ${formatDate(movement.dateIssue)}`,
+          `Descripción: ${movement.description || 'Sin descripción.'}`,
+          `Comprobante: ${movement.receiptUrl ? 'Adjunto' : 'Sin comprobante'}`,
+        ].join('\n'),
+      )
+    } catch (requestError) {
+      setMutationError(errorMessage(requestError))
+    }
+  }
+
   const toggleCreateForm = () => {
     if (showCreateForm) {
       setReceiptFile(null)
@@ -374,6 +398,7 @@ export function MovimientosView() {
               </div>
               <div className={`amount ${kind}`}>{sign}{formatCurrency(Math.abs(movement.amount))}</div>
               <div className="movement-actions">
+                <button className="secondary-button" type="button" onClick={() => void showMovementDetails(movement.movementId)}>Detalle</button>
                 {movement.receiptUrl && <a className="secondary-button" href={movement.receiptUrl} target="_blank" rel="noreferrer">Ver comprobante</a>}
                 <ReceiptPicker onFile={(file) => {
                   if (file) void uploadReceipt(movement, file)

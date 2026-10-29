@@ -158,11 +158,13 @@ FinancIA-Frontend/
 | PUT | `/api/v1/users/me/password` | Cambio de contraseña |
 | DELETE | `/api/v1/users/me` | Suspensión de la cuenta |
 | GET | `/api/v1/user/dashboard/sumary?from=YYYY-MM-DD` | Resumen financiero del periodo |
+| GET | `/api/v1/user/dashboard/evolution` | Evolución mensual de ingresos y gastos |
+| GET | `/api/v1/user/dashboard/expenses-category?from=...&until=...` | Distribución de gastos por categoría |
 | GET, POST, DELETE | `/api/v1/movements/...` | Consulta, registro, eliminación y comprobantes |
 | POST | `/api/v1/voucher/analyzer` | Análisis OCR de comprobantes |
 | GET, POST, PUT | `/api/v1/objectives/...` | Metas, estados, aportes e historial |
 | GET, POST, PUT | `/api/v1/accounts/...` | Cuentas y transferencias entre cuentas |
-| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Categorías globales y personales |
+| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Categorías globales y personales (crear global disponible para ADMIN) |
 | GET, POST, PUT, PATCH | `/api/v1/budgets/...` | Presupuestos, estado y consumo |
 | GET, POST, PUT | `/api/v1/subscriptions/...` | Suscripciones y estado |
 

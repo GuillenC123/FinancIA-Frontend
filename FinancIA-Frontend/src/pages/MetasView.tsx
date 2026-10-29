@@ -4,8 +4,10 @@ import {
   contributeToObjective,
   createObjective,
   getAccounts,
+  getFinancialObjective,
   getFinancialObjectives,
   getGlobalCategories,
+  getObjectiveContribution,
   getObjectiveContributions,
   getUserCategories,
   updateObjectiveStatus,
@@ -181,6 +183,37 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
     }
   }
 
+  const showGoalDetails = async (goalId: string) => {
+    setActionError('')
+    try {
+      const goal = await getFinancialObjective(goalId)
+      onOpenDetails(
+        goal.name,
+        `${goal.description || 'Sin descripción.'} Estado: ${statusLabels[goal.status]}. Llevas ${formatCurrency(goal.currentAmount)} de ${formatCurrency(goal.targetAmount)}. Fecha objetivo: ${formatDate(goal.targetDate)}.`,
+      )
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    }
+  }
+
+  const showContributionDetails = async (contributionId: string) => {
+    setActionError('')
+    try {
+      const contribution = await getObjectiveContribution(contributionId)
+      onOpenDetails(
+        'Detalle del aporte',
+        [
+          `Meta: ${contribution.objective.name}`,
+          `Monto: ${formatCurrency(contribution.amount)}`,
+          `Fecha: ${formatDate(contribution.date)}`,
+          `Descripción: ${contribution.description || 'Aporte a la meta'}`,
+        ].join('\n'),
+      )
+    } catch (requestError) {
+      setActionError(errorMessage(requestError))
+    }
+  }
+
   const colorClasses = ['purple', 'green', 'blue']
 
   return (
@@ -277,10 +310,7 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
 
                     <div className="meta-footer">
                       <small>{displayedProgress.toFixed(0)}% · {statusLabels[goal.status]}</small>
-                      <button type="button" onClick={() => onOpenDetails(
-                        goal.name,
-                        `${goal.description || 'Sin descripción.'} Estado: ${statusLabels[goal.status]}. Llevas ${formatCurrency(goal.currentAmount)} de ${formatCurrency(goal.targetAmount)}. Fecha objetivo: ${formatDate(goal.targetDate)}.`,
-                      )}>
+                      <button type="button" onClick={() => void showGoalDetails(goal.id)}>
                         Ver detalle
                         <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
                       </button>
@@ -315,6 +345,7 @@ export function MetasView({ onOpenDetails }: MetasViewProps) {
                             <div key={contribution.id}>
                               <span>{formatDate(contribution.date)} · {contribution.description || 'Aporte a la meta'}</span>
                               <strong>{formatCurrency(contribution.amount)}</strong>
+                              <button className="secondary-button" type="button" onClick={() => void showContributionDetails(contribution.id)}>Detalle</button>
                             </div>
                           ))}
                       </div>
