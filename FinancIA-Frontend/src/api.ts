@@ -567,16 +567,6 @@ export function getGlobalCategories() {
   return request<FinancialCategory[]>('/api/v1/categories/global')
 }
 
-export function createGlobalCategory(payload: {
-  name: string
-  type: FinancialCategory['type']
-}) {
-  return request<FinancialCategory>('/api/v1/categories/global', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
-}
-
 export function getUserCategories() {
   return request<FinancialCategory[]>('/api/v1/categories/of-user')
 }

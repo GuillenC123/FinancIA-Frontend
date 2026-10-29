@@ -4,7 +4,6 @@ import {
   changeBudgetStatus,
   createAccount,
   createBudget,
-  createGlobalCategory,
   createSubscription,
   createTransfer,
   createUserCategory,
@@ -45,8 +44,7 @@ const sections: Array<{ id: Section; label: string }> = [
   { id: 'suscripciones', label: 'Suscripciones' },
 ]
 
-export function GestionView({ isAdmin, onOpenDetails }: {
-  isAdmin: boolean
+export function GestionView({ onOpenDetails }: {
   onOpenDetails: (title: string, content: string) => void
 }) {
   const [section, setSection] = useState<Section>('cuentas')
@@ -72,7 +70,7 @@ export function GestionView({ isAdmin, onOpenDetails }: {
       </div>
       {section === 'cuentas' && <AccountsPanel onOpenDetails={onOpenDetails} />}
       {section === 'presupuestos' && <BudgetsPanel onOpenDetails={onOpenDetails} />}
-      {section === 'categorias' && <CategoriesPanel isAdmin={isAdmin} />}
+      {section === 'categorias' && <CategoriesPanel />}
       {section === 'suscripciones' && <SubscriptionsPanel onOpenDetails={onOpenDetails} />}
     </>
   )
@@ -440,7 +438,7 @@ function BudgetsPanel({ onOpenDetails }: {
   )
 }
 
-function CategoriesPanel({ isAdmin }: { isAdmin: boolean }) {
+function CategoriesPanel() {
   const [globalCategories, setGlobalCategories] = useState<FinancialCategory[]>([])
   const [userCategories, setUserCategories] = useState<FinancialCategory[]>([])
   const [error, setError] = useState('')
@@ -489,26 +487,6 @@ function CategoriesPanel({ isAdmin }: { isAdmin: boolean }) {
     }
   }
 
-  const saveGlobalCategory = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formElement = event.currentTarget
-    const form = new FormData(formElement)
-    setBusy(true)
-    setError('')
-    try {
-      await createGlobalCategory({
-        name: String(form.get('name')),
-        type: String(form.get('type')) as FinancialCategory['type'],
-      })
-      formElement.reset()
-      setReload((value) => value + 1)
-    } catch (requestError) {
-      setError(message(requestError, 'No se pudo crear la categoría global.'))
-    } finally {
-      setBusy(false)
-    }
-  }
-
   const remove = async (category: FinancialCategory) => {
     if (!window.confirm(`¿Eliminar la categoría «${category.name}»?`)) return
     await mutate(() => deleteUserCategory(category.id), setError, () => setReload((value) => value + 1))
@@ -526,15 +504,6 @@ function CategoriesPanel({ isAdmin }: { isAdmin: boolean }) {
   return (
     <section className="management-layout">
       {error && <div className="auth-feedback error" role="alert">{error}</div>}
-      {isAdmin && (
-        <Panel title="Crear categoría global">
-          <form className="management-form" onSubmit={saveGlobalCategory}>
-            <label>Nombre (mínimo 5 caracteres)<input name="name" minLength={5} required /></label>
-            <label>Tipo<select name="type" defaultValue="GASTOS"><option value="INGRESOS">Ingresos</option><option value="GASTOS">Gastos</option><option value="AHORRO">Ahorro</option></select></label>
-            <button className="modal-primary" type="submit" disabled={busy}>Crear categoría global</button>
-          </form>
-        </Panel>
-      )}
       <Panel title={editingCategory ? 'Editar categoría personal' : 'Crear categoría personal'}>
         <form className="management-form" key={editingCategory?.id ?? 'new-category'} onSubmit={saveCategory}>
           <label>Nombre (mínimo 5 caracteres)<input name="name" minLength={5} defaultValue={editingCategory?.name} required /></label>

@@ -111,7 +111,7 @@ function App() {
         {activeView === 'movimientos' && <MovimientosView onOpenDetails={openDetails} />}
         {activeView === 'asistente' && <AsistenteView />}
         {activeView === 'metas' && <MetasView onOpenDetails={openDetails} />}
-        {activeView === 'gestion' && <GestionView isAdmin={user?.role === 'ADMIN'} onOpenDetails={openDetails} />}
+        {activeView === 'gestion' && <GestionView onOpenDetails={openDetails} />}
       </main>
 
       {modal?.type === 'consultation' && (
