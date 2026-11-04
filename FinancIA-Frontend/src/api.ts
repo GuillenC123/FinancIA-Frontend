@@ -348,7 +348,7 @@ export function confirmTwoFactor(code: string) {
 }
 
 export function getDashboardSummary(from: string) {
-  return request<DashboardSummary>(`/api/v1/user/dashboard/sumary?from=${encodeURIComponent(from)}`)
+  return request<DashboardSummary>(`/api/v1/user/dashboard/summary?from=${encodeURIComponent(from)}`)
 }
 
 export function getFinancialEvolution() {

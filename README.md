@@ -157,7 +157,7 @@ FinancIA-Frontend/
 | GET | `/api/v1/users/me` | Datos del usuario autenticado |
 | PUT | `/api/v1/users/me/password` | Cambio de contraseña |
 | DELETE | `/api/v1/users/me` | Suspensión de la cuenta |
-| GET | `/api/v1/user/dashboard/sumary?from=YYYY-MM-DD` | Resumen financiero del periodo |
+| GET | `/api/v1/user/dashboard/summary?from=YYYY-MM-DD` | Resumen financiero del periodo |
 | GET | `/api/v1/user/dashboard/evolution` | Evolución mensual de ingresos y gastos |
 | GET | `/api/v1/user/dashboard/expenses-category?from=...&until=...` | Distribución de gastos por categoría |
 | GET, POST, DELETE | `/api/v1/movements/...` | Consulta, registro, eliminación y comprobantes |
