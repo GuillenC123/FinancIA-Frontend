@@ -52,11 +52,6 @@ function movementKind(categoryType: string): MovementKind {
   return 'expense'
 }
 
-function currentMonthKey() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
-
 function recentMonths(): FilterOption[] {
   return Array.from({ length: 6 }, (_, offset) => {
     const date = new Date()
@@ -78,7 +73,7 @@ export function MovimientosView({ onOpenDetails }: {
 }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [account, setAccount] = useState('all')
-  const [month, setMonth] = useState(currentMonthKey)
+  const [month, setMonth] = useState('all')
   const [openMenu, setOpenMenu] = useState<'month' | 'account' | null>(null)
   const [movements, setMovements] = useState<Movement[]>([])
   const [loading, setLoading] = useState(true)
@@ -143,10 +138,13 @@ export function MovimientosView({ onOpenDetails }: {
     const kind = movementKind(movement.category.type)
     const matchesType = filter === 'all' || kind === filter
     const matchesAccount = account === 'all' || movement.account.id === account
-    return matchesType && matchesAccount && movement.dateIssue.slice(0, 7) === month
+    const matchesMonth = month === 'all' || movement.dateIssue.slice(0, 7) === month
+    return matchesType && matchesAccount && matchesMonth
   })
 
-  const selectedMonth = months.find((option) => option.value === month)?.label ?? month
+  const selectedMonth = month === 'all'
+    ? 'Todos los periodos'
+    : months.find((option) => option.value === month)?.label ?? month
   const selectedAccountLabel = accountOptions.find((option) => option.value === account)?.label ?? 'Todas las cuentas'
   const retry = () => {
     setLoading(true)
@@ -340,7 +338,7 @@ export function MovimientosView({ onOpenDetails }: {
             value={month}
             displayValue={selectedMonth}
             isOpen={openMenu === 'month'}
-            options={months}
+            options={[{ value: 'all', label: 'Todos los periodos' }, ...months]}
             onToggle={() => setOpenMenu(openMenu === 'month' ? null : 'month')}
             onSelect={(value) => {
               setMonth(value)

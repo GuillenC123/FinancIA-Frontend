@@ -361,7 +361,7 @@ export function getExpensesByCategory(from: string, until: string) {
 }
 
 export function getMovements() {
-  return getAllPages<Movement>('/api/v1/movements/my-movements', 'date_issue')
+  return getAllPages<Movement>('/api/v1/movements/my-movements', 'fecha_registro')
 }
 
 export function getMovement(id: string) {

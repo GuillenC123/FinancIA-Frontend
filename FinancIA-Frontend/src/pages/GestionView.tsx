@@ -41,7 +41,7 @@ const sections: Array<{ id: Section; label: string }> = [
   { id: 'cuentas', label: 'Cuentas y transferencias' },
   { id: 'presupuestos', label: 'Presupuestos' },
   { id: 'categorias', label: 'Categorías' },
-  { id: 'suscripciones', label: 'Suscripciones' },
+  { id: 'suscripciones', label: 'Movimientos frecuentes' },
 ]
 
 export function GestionView({ onOpenDetails }: {
