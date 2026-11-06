@@ -16,7 +16,7 @@ export function ConsultationModal({ onClose }: ConsultationModalProps) {
           <div className="modal-icon" aria-hidden="true"><MessageSquarePlus size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="consultation-title">Nueva consulta</h2>
-            <p>El backend de la rama develop todavía no ofrece un endpoint para consultas de IA.</p>
+            <p>El backend todavía no ofrece un endpoint para realizar consultas de IA.</p>
           </div>
           <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
