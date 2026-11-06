@@ -75,11 +75,12 @@ Se pueden definir en un archivo `.env` junto a `compose.yml`. Para detenerlo: `d
 
 Vite solo expone al navegador las variables que empiezan con `VITE_`. El archivo `.env.example` sirve de plantilla.
 
-| Variable | Descripción | Desarrollo | Producción |
-|---|---|---|---|
-| `VITE_API_URL` | URL base del backend | Vacía | URL pública del backend desplegado |
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `VITE_API_URL` | URL base del backend para llamadas directas desde el navegador | Vacía |
+| `BACKEND_PROXY_URL` | Backend al que Vite reenvía `/api` y `/ws` en desarrollo | `https://financia-api-vnoe.onrender.com` |
 
-En desarrollo **no hace falta crear ningún archivo `.env`**. Con la variable vacía, las peticiones usan rutas relativas (`/api/v1/...`) y el servidor de Vite las redirige al backend mediante el proxy definido en `vite.config.js`. Si el backend corre en otro puerto, se cambia el `target` de ese proxy.
+En desarrollo, las peticiones usan rutas relativas (`/api/v1/...`) y Vite las reenvía al backend desplegado mediante `BACKEND_PROXY_URL`, evitando solicitudes directas desde el navegador. Para usar un backend local, define `BACKEND_PROXY_URL=http://localhost:8080` en `.env.local` y reinicia Vite. Para producción, configura `VITE_API_URL` con la URL pública del backend si el navegador se conecta directamente; en ese caso el backend debe permitir el origen del frontend en CORS.
 
 Para valores propios de tu máquina, crea un `.env.local` a partir de `.env.example`: Git lo ignora y no se sube al repositorio.
 
