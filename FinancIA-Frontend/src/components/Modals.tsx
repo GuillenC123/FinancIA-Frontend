@@ -1,25 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChartPie, MessageSquarePlus, ShieldCheck, X } from 'lucide-react'
-import { confirmTwoFactor, setupTwoFactor } from '../api'
+import { changePassword, confirmTwoFactor, setupTwoFactor, suspendUser } from '../api'
 import type { DetailModalProps } from '../types'
 
 const CloseIcon = () => <X size={18} strokeWidth={2} aria-hidden="true" />
 
 type ConsultationModalProps = {
   onClose: () => void
-  onSubmit: (question: string) => void
 }
-export function ConsultationModal({ onClose, onSubmit }: ConsultationModalProps) {
-  const [question, setQuestion] = useState('')
-  const suggestions = [
-    '¿En qué estoy gastando más?',
-    '¿Cuánto puedo ahorrar esta semana?',
-    '¿Cómo avanzo con mis metas?',
-  ]
-  const submitQuestion = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (question.trim()) onSubmit(question.trim())
-  }
+export function ConsultationModal({ onClose }: ConsultationModalProps) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div className="modal-card consultation-modal" role="dialog" aria-modal="true" aria-labelledby="consultation-title" onMouseDown={(event) => event.stopPropagation()}>
@@ -27,30 +16,13 @@ export function ConsultationModal({ onClose, onSubmit }: ConsultationModalProps)
           <div className="modal-icon" aria-hidden="true"><MessageSquarePlus size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="consultation-title">Nueva consulta</h2>
-            <p>Pregunta algo sobre tus finanzas y recibe una orientación personalizada.</p>
+            <p>El backend todavía no ofrece un endpoint para realizar consultas de IA.</p>
           </div>
           <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
-        <form onSubmit={submitQuestion}>
-          <label htmlFor="consultation-input">¿Qué quieres analizar?</label>
-          <textarea
-            id="consultation-input"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Ejemplo: ¿Cómo puedo ahorrar más este mes?"
-            rows={4}
-            autoFocus
-          />
-          <div className="suggestion-list">
-            {suggestions.map((suggestion) => (
-              <button key={suggestion} type="button" onClick={() => setQuestion(suggestion)}>{suggestion}</button>
-            ))}
-          </div>
-          <div className="modal-actions">
-            <button className="secondary-button" type="button" onClick={onClose}>Cancelar</button>
-            <button className="modal-primary" type="submit" disabled={!question.trim()}>Analizar consulta</button>
-          </div>
-        </form>
+        <div className="modal-actions">
+          <button className="secondary-button" type="button" onClick={onClose}>Cerrar</button>
+        </div>
       </div>
     </div>
   )
@@ -163,20 +135,84 @@ export function DetailsModal({ title, content, onClose }: DetailModalProps) {
           <div className="modal-icon" aria-hidden="true"><ChartPie size={20} strokeWidth={1.75} /></div>
           <div>
             <h2 id="details-title">{title}</h2>
-            <p>Resumen generado con tus datos de ejemplo.</p>
+            <p>Información de tus datos financieros.</p>
           </div>
           <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
         </div>
         <div className="detail-highlight">
-          <span>Recomendación FinancIA</span>
+          <span>Detalle</span>
           <strong>{content}</strong>
         </div>
-        <div className="details-list">
-          <div><span>Estado</span><strong>En buen camino</strong></div>
-          <div><span>Próxima revisión</span><strong>En 7 días</strong></div>
-          <div><span>Impacto estimado</span><strong className="positive-text">+ S/ 300</strong></div>
-        </div>
         <button className="modal-primary full-width" type="button" onClick={onClose}>Entendido</button>
+      </div>
+    </div>
+  )
+}
+
+type ProfileSettingsModalProps = {
+  onClose: () => void
+  onPasswordChanged: () => void
+  onAccountSuspended: () => void
+}
+
+export function ProfileSettingsModal({ onClose, onPasswordChanged, onAccountSuspended }: ProfileSettingsModalProps) {
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  const updatePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+    setNotice('')
+    try {
+      await changePassword(password)
+      setPassword('')
+      setNotice('La contraseña se actualizó correctamente.')
+      onPasswordChanged()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo actualizar la contraseña.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const suspendAccount = async () => {
+    if (!window.confirm('La cuenta se suspenderá durante 30 días. ¿Deseas continuar?')) return
+    setLoading(true)
+    setError('')
+    try {
+      await suspendUser()
+      onAccountSuspended()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo suspender la cuenta.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div className="modal-card details-modal" role="dialog" aria-modal="true" aria-labelledby="profile-settings-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-heading">
+          <div className="modal-icon" aria-hidden="true"><ShieldCheck size={20} strokeWidth={1.75} /></div>
+          <div>
+            <h2 id="profile-settings-title">Ajustes de cuenta</h2>
+            <p>Actualiza tu contraseña o suspende temporalmente tu cuenta.</p>
+          </div>
+          <button className="close-button" type="button" onClick={onClose} aria-label="Cerrar"><CloseIcon /></button>
+        </div>
+        <form className="management-form" onSubmit={updatePassword}>
+          <label>Nueva contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <small>Debe incluir mayúscula, minúscula, número y símbolo.</small>
+          <button className="modal-primary" type="submit" disabled={loading}>{loading ? 'Guardando…' : 'Cambiar contraseña'}</button>
+        </form>
+        {notice && <div className="auth-feedback notice" role="status">{notice}</div>}
+        {error && <div className="auth-feedback error" role="alert">{error}</div>}
+        <div className="modal-actions">
+          <button className="secondary-button danger-action" type="button" onClick={() => void suspendAccount()} disabled={loading}>Suspender cuenta</button>
+          <button className="secondary-button" type="button" onClick={onClose}>Cerrar</button>
+        </div>
       </div>
     </div>
   )

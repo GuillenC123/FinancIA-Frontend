@@ -13,7 +13,19 @@ Este repositorio contiene el **frontend**. El backend (Java, Spring Boot, WebFlu
 | Activación de verificación en dos pasos (2FA) | Conectado al backend |
 | Verificación del código 2FA al iniciar sesión | Conectado al backend |
 | Datos del usuario en el perfil | Conectado al backend |
-| Dashboard, Movimientos, Metas y Asistente IA | Interfaz terminada, con datos de ejemplo |
+| Cambio de contraseña y suspensión de cuenta | Conectado al backend |
+| Dashboard | Conectado al resumen real del mes |
+| Movimientos | Consulta paginada, registro, eliminación, OCR y comprobantes conectados |
+| Metas | Consulta, creación, cambios de estado, aportes e historial conectados |
+| Cuentas y transferencias | Creación y estado de cuentas; transferencias, historial, edición y eliminación conectados |
+| Categorías | Consulta global y personal; creación, edición y eliminación de categorías personales |
+| Presupuestos | Consulta, creación, edición, estado y consumo conectados |
+| Suscripciones | Consulta, creación y cambio de estado conectados |
+| Notificaciones | Recibidas en tiempo real mediante WebSocket autenticado |
+| Comprobantes | Se pueden adjuntar desde archivo o tomar una foto desde un dispositivo compatible |
+| Asistente IA | Vista de próximamente; todavía no conversa con el backend |
+
+Las funciones financieras que ya ofrece el backend están agrupadas en la vista **Gestión** o disponibles desde sus pantallas existentes. Los filtros de movimientos siguen aplicándose en el frontend sobre los registros paginados recuperados.
 
 ## Tecnologías
 
@@ -63,13 +75,37 @@ Se pueden definir en un archivo `.env` junto a `compose.yml`. Para detenerlo: `d
 
 Vite solo expone al navegador las variables que empiezan con `VITE_`. El archivo `.env.example` sirve de plantilla.
 
-| Variable | Descripción | Desarrollo | Producción |
-|---|---|---|---|
-| `VITE_API_URL` | URL base del backend | Vacía | URL pública del backend desplegado |
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `VITE_API_URL` | URL base del backend para llamadas directas desde el navegador | Vacía |
+| `BACKEND_PROXY_URL` | Backend al que Vite reenvía `/api` y `/ws` en desarrollo | `https://financia-api-vnoe.onrender.com` |
 
-En desarrollo **no hace falta crear ningún archivo `.env`**. Con la variable vacía, las peticiones usan rutas relativas (`/api/v1/...`) y el servidor de Vite las redirige al backend mediante el proxy definido en `vite.config.js`. Si el backend corre en otro puerto, se cambia el `target` de ese proxy.
+En desarrollo, las peticiones usan rutas relativas (`/api/v1/...`) y Vite las reenvía al backend desplegado mediante `BACKEND_PROXY_URL`, evitando solicitudes directas desde el navegador. Para usar un backend local, define `BACKEND_PROXY_URL=http://localhost:8080` en `.env.local` y reinicia Vite. Para producción, configura `VITE_API_URL` con la URL pública del backend si el navegador se conecta directamente; en ese caso el backend debe permitir el origen del frontend en CORS.
 
 Para valores propios de tu máquina, crea un `.env.local` a partir de `.env.example`: Git lo ignora y no se sube al repositorio.
+
+## Levantar backend y base de datos local
+
+El backend está en `financIA/` y su `compose.yml` levanta PostgreSQL y Redis. En PowerShell:
+
+```powershell
+Set-Location .\financIA
+Copy-Item .env.example .env
+docker compose up -d postgres redis
+```
+
+Configura en tu entorno de ejecución del backend las variables de `.env` (en especial `HOST_DB=localhost`, `REDIS_HOST=localhost` y sus credenciales) y ejecuta `.\mvnw.cmd spring-boot:run`. Luego, desde `FinancIA-Frontend/`, ejecuta `npm run dev`.
+
+Si el equipo agrega tablas que solo se crean en una base nueva, detén primero los servicios y elimina **solo** el volumen de PostgreSQL antes de volver a levantarlos. Esto borra todos los datos locales de PostgreSQL; conserva el volumen de Redis:
+
+```powershell
+docker compose down
+docker volume ls
+docker volume rm financia_postgres_data
+docker compose up -d postgres redis
+```
+
+El nombre por defecto del volumen es `financia_postgres_data`; confirma el nombre mostrado por `docker volume ls` si Compose usa otro nombre de proyecto. No uses `docker compose down -v` si quieres conservar el volumen de Redis.
 
 ## Scripts
 
@@ -86,17 +122,19 @@ Para valores propios de tu máquina, crea un `.env.local` a partir de `.env.exam
 ```
 FinancIA-Frontend/
 ├── index.html
-├── vite.config.js        # Proxy de /api hacia el backend
+├── vite.config.js        # Proxy de /api y /ws hacia el backend
 ├── .env.example
 └── src/
     ├── main.tsx          # Punto de entrada
     ├── App.tsx           # Sesión, navegación entre vistas y modales
     ├── api.ts            # Comunicación con el backend y manejo del token
     ├── types.ts          # Tipos compartidos
-    ├── data.ts           # Datos de ejemplo de las vistas aún no conectadas
+    ├── data.ts           # Navegación
+    ├── format.ts         # Formato de fechas y moneda
     ├── components/
     │   ├── Sidebar.tsx   # Menú lateral y menú del perfil
-    │   └── Modals.tsx    # Nueva consulta, detalles y activación de 2FA
+    │   ├── Modals.tsx    # Nueva consulta, detalles y activación de 2FA
+    │   └── Notifications.tsx # Recepción y avisos WebSocket
     └── pages/
         ├── AuthView.tsx  # Contenedor de inicio de sesión y registro
         ├── LoginView.tsx
@@ -104,6 +142,7 @@ FinancIA-Frontend/
         ├── DashboardView.tsx
         ├── MovimientosView.tsx
         ├── MetasView.tsx
+        ├── GestionView.tsx # Cuentas, transferencias, categorías, presupuestos y suscripciones
         └── AsistenteView.tsx
 ```
 
@@ -117,6 +156,20 @@ FinancIA-Frontend/
 | POST | `/api/v1/auth/2fa/confirm` | Confirma el código y activa el 2FA |
 | POST | `/api/v1/auth/verify-2fa` | Segundo paso del inicio de sesión |
 | GET | `/api/v1/users/me` | Datos del usuario autenticado |
+| PUT | `/api/v1/users/me/password` | Cambio de contraseña |
+| DELETE | `/api/v1/users/me` | Suspensión de la cuenta |
+| GET | `/api/v1/user/dashboard/summary?from=YYYY-MM-DD` | Resumen financiero del periodo |
+| GET | `/api/v1/user/dashboard/evolution` | Evolución mensual de ingresos y gastos |
+| GET | `/api/v1/user/dashboard/expenses-category?from=...&until=...` | Distribución de gastos por categoría |
+| GET, POST, DELETE | `/api/v1/movements/...` | Consulta, registro, eliminación y comprobantes |
+| POST | `/api/v1/voucher/analyzer` | Análisis OCR de comprobantes |
+| GET, POST, PUT | `/api/v1/objectives/...` | Metas, estados, aportes e historial |
+| GET, POST, PUT | `/api/v1/accounts/...` | Cuentas y transferencias entre cuentas |
+| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Categorías globales y personales (crear global disponible para ADMIN) |
+| GET, POST, PUT, PATCH | `/api/v1/budgets/...` | Presupuestos, estado y consumo |
+| GET, POST, PUT | `/api/v1/subscriptions/...` | Suscripciones y estado |
+
+Las notificaciones se reciben por `ws://localhost:8080/ws/notifications?token=<JWT>` (o `wss://` en HTTPS). En desarrollo, Vite reenvía `/ws` al backend; nginx hace lo mismo en la imagen Docker.
 
 ## Autenticación y 2FA
 
@@ -129,6 +182,11 @@ FinancIA-Frontend/
 - **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. La configuración de nginx de la imagen Docker hace lo mismo. Fuera de esos dos casos, el backend debe corregir su configuración de CORS.
 - **Estado del 2FA.** El endpoint `/api/v1/users/me` aún no indica si el usuario tiene el 2FA activo. El frontend lo deduce de la respuesta del inicio de sesión y lo guarda en el navegador. Cuando el backend exponga ese dato, conviene leerlo directamente de ahí.
 - **Desactivar el 2FA.** El backend no ofrece todavía un endpoint para desactivarlo.
+- **Asistente IA.** La pantalla es solo una vista previa; no hay un endpoint de chat conectado todavía.
+- **Notificaciones.** El backend las entrega solo en tiempo real mientras el usuario mantiene abierta la aplicación; no existe un endpoint de historial.
+- **Tomar foto.** La opción usa la captura de cámara que ofrece el navegador/dispositivo; la disponibilidad depende del equipo y de sus permisos.
+- **Análisis de comprobantes.** Antes de enviarla al analizador, cada imagen se ajusta hasta 768 × 1536 píxeles y se comprime como JPEG. El comprobante original no se modifica al adjuntarlo al movimiento; los archivos que no son imágenes se envían sin conversión.
+- **Fecha en movimientos.** El analizador de comprobantes devuelve una fecha detectada, pero el endpoint de creación de movimientos no permite asignarla; la interfaz muestra el dato sin aplicarlo.
 
 
 Proyecto del curso de Ingeniería de Software, 2026.

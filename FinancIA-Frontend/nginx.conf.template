@@ -20,6 +20,17 @@ server {
         proxy_set_header Origin "";
     }
 
+    location /ws/ {
+        resolver 127.0.0.11 valid=10s;
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header Origin "";
+    }
+
     location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
