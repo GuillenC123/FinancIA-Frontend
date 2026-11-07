@@ -20,12 +20,12 @@ Este repositorio contiene el **frontend**. El backend (Java, Spring Boot, WebFlu
 | Cuentas y transferencias | Creación y estado de cuentas; transferencias, historial, edición y eliminación conectados |
 | Categorías | Consulta global y personal; creación, edición y eliminación de categorías personales |
 | Presupuestos | Consulta, creación, edición, estado y consumo conectados |
-| Suscripciones | Consulta, creación y cambio de estado conectados |
+| Movimientos frecuentes | Consulta, creación y cambio de estado conectados mediante el módulo de suscripciones |
 | Notificaciones | Recibidas en tiempo real mediante WebSocket autenticado |
 | Comprobantes | Se pueden adjuntar desde archivo o tomar una foto desde un dispositivo compatible |
 | Asistente IA | Vista de próximamente; todavía no conversa con el backend |
 
-Las funciones financieras que ya ofrece el backend están agrupadas en la vista **Gestión** o disponibles desde sus pantallas existentes. Los filtros de movimientos siguen aplicándose en el frontend sobre los registros paginados recuperados.
+Las funciones financieras que ya ofrece el backend están agrupadas en la vista **Gestión** o disponibles desde sus pantallas existentes. La sección de suscripciones aparece en la interfaz como **Movimientos frecuentes**. La pestaña de movimientos carga inicialmente todos los periodos; el usuario puede filtrar después por mes, tipo o cuenta. Los filtros se aplican en el frontend sobre los registros paginados recuperados.
 
 ## Tecnologías
 
@@ -38,7 +38,7 @@ Las funciones financieras que ya ofrece el backend están agrupadas en la vista 
 ## Requisitos
 
 - Node.js 20.19 o superior y npm
-- El backend de FinancIA corriendo en `http://localhost:8080` 
+- Acceso a internet para usar el backend desplegado por defecto, o un backend configurado localmente
 
 ## Instalación y ejecución
 
@@ -80,9 +80,22 @@ Vite solo expone al navegador las variables que empiezan con `VITE_`. El archivo
 | `VITE_API_URL` | URL base del backend para llamadas directas desde el navegador | Vacía |
 | `BACKEND_PROXY_URL` | Backend al que Vite reenvía `/api` y `/ws` en desarrollo | `https://financia-api-vnoe.onrender.com` |
 
-En desarrollo, las peticiones usan rutas relativas (`/api/v1/...`) y Vite las reenvía al backend desplegado mediante `BACKEND_PROXY_URL`, evitando solicitudes directas desde el navegador. Para usar un backend local, define `BACKEND_PROXY_URL=http://localhost:8080` en `.env.local` y reinicia Vite. Para producción, configura `VITE_API_URL` con la URL pública del backend si el navegador se conecta directamente; en ese caso el backend debe permitir el origen del frontend en CORS.
+En desarrollo, las peticiones usan rutas relativas (`/api/v1/...`) y Vite las reenvía al backend desplegado mediante `BACKEND_PROXY_URL`, evitando solicitudes directas desde el navegador. Si no se define, se usa `https://financia-api-vnoe.onrender.com`. Para usar un backend local, define `BACKEND_PROXY_URL=http://localhost:8080` en `.env.local` y reinicia Vite.
 
 Para valores propios de tu máquina, crea un `.env.local` a partir de `.env.example`: Git lo ignora y no se sube al repositorio.
+
+## Despliegue en Render
+
+El frontend puede desplegarse como **Static Site** conectado al repositorio:
+
+| Configuración | Valor |
+|---|---|
+| Root Directory | `FinancIA-Frontend` |
+| Build Command | `npm ci && npm run build` |
+| Publish Directory | `dist` |
+| Variable de entorno | `VITE_API_URL=https://financia-api-vnoe.onrender.com` |
+
+`VITE_API_URL` se usa durante la compilación para que el navegador solicite la API y abra el WebSocket directamente contra el backend. Después de crear el sitio, se debe compartir la URL pública asignada al frontend con el equipo de backend para que agregue ese origen a la configuración CORS. No se deben incluir credenciales ni claves privadas en variables `VITE_*`, porque se incorporan al código enviado al navegador.
 
 ## Levantar backend y base de datos local
 
@@ -165,7 +178,7 @@ FinancIA-Frontend/
 | POST | `/api/v1/voucher/analyzer` | Análisis OCR de comprobantes |
 | GET, POST, PUT | `/api/v1/objectives/...` | Metas, estados, aportes e historial |
 | GET, POST, PUT | `/api/v1/accounts/...` | Cuentas y transferencias entre cuentas |
-| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Categorías globales y personales (crear global disponible para ADMIN) |
+| GET, POST, PUT, DELETE | `/api/v1/categories/...` | Consulta de categorías globales y gestión de categorías personales; la interfaz no expone acciones administrativas |
 | GET, POST, PUT, PATCH | `/api/v1/budgets/...` | Presupuestos, estado y consumo |
 | GET, POST, PUT | `/api/v1/subscriptions/...` | Suscripciones y estado |
 
@@ -179,10 +192,10 @@ Las notificaciones se reciben por `ws://localhost:8080/ws/notifications?token=<J
 
 ## Limitaciones conocidas
 
-- **Proxy de desarrollo.** El proxy de `vite.config.js` elimina la cabecera `Origin` antes de reenviar las peticiones, porque la configuración de CORS del backend todavía no se aplica y rechaza con 403 las peticiones del navegador. La configuración de nginx de la imagen Docker hace lo mismo. Fuera de esos dos casos, el backend debe corregir su configuración de CORS.
+- **Proxy de desarrollo y Docker.** Vite y nginx reenvían las solicitudes API y WebSocket sin la cabecera `Origin`. En un Static Site de Render, el navegador se conecta directamente usando `VITE_API_URL`, por lo que el backend debe permitir el dominio desplegado del frontend en CORS.
 - **Estado del 2FA.** El endpoint `/api/v1/users/me` aún no indica si el usuario tiene el 2FA activo. El frontend lo deduce de la respuesta del inicio de sesión y lo guarda en el navegador. Cuando el backend exponga ese dato, conviene leerlo directamente de ahí.
 - **Desactivar el 2FA.** El backend no ofrece todavía un endpoint para desactivarlo.
-- **Asistente IA.** La pantalla es solo una vista previa; no hay un endpoint de chat conectado todavía.
+- **Asistente IA.** La pantalla es solo una vista previa; el backend todavía no ofrece un endpoint para realizar consultas de IA.
 - **Notificaciones.** El backend las entrega solo en tiempo real mientras el usuario mantiene abierta la aplicación; no existe un endpoint de historial.
 - **Tomar foto.** La opción usa la captura de cámara que ofrece el navegador/dispositivo; la disponibilidad depende del equipo y de sus permisos.
 - **Análisis de comprobantes.** Antes de enviarla al analizador, cada imagen se ajusta hasta 768 × 1536 píxeles y se comprime como JPEG. El comprobante original no se modifica al adjuntarlo al movimiento; los archivos que no son imágenes se envían sin conversión.
