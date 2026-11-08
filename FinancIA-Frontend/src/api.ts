@@ -45,6 +45,75 @@ export type CurrentUser = {
   role: string
 }
 
+export type AdminDashboard = {
+  period: { from: string; to: string }
+  timeZone: string
+  generatedAt: string
+  overview: {
+    users: {
+      total: number
+      active: number
+      suspended: number
+      inactive: number
+      deleted: number
+      pending: number
+      administrators: number
+      registeredInPeriod: number
+    }
+    categories: { total: number; active: number; inactive: number }
+    budgets: { total: number; active: number; inactive: number; createdInPeriod: number }
+    goals: { total: number; completed: number; startedInPeriod: number }
+    ocr: { successful: number; failed: number; total: number; firstRecordedDate: string | null }
+  }
+  registrations: Array<{ date: string; count: number }>
+}
+
+export type AdminUserStatus = 'ACTIVO' | 'SUSPENDIDO' | 'INACTIVO' | 'ELIMINADO'
+export type AdminUser = {
+  id: string
+  name: string
+  lastName: string
+  email: string
+  role: 'USER' | 'ADMIN'
+  status: AdminUserStatus
+  creationDate: string
+  updateDate: string | null
+}
+
+export type AdminPage<T> = {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export type AdminCategory = {
+  id: string
+  userId: string | null
+  name: string
+  type: 'INGRESOS' | 'GASTOS' | 'AHORRO'
+  parentCategoryId: string | null
+  creationDate: string
+  updateDate: string | null
+  active: boolean
+}
+
+export type AdminAuditAction =
+  | 'CATEGORY_CREATED'
+  | 'CATEGORY_RENAMED'
+  | 'CATEGORY_STATUS_CHANGED'
+  | 'USER_STATUS_CHANGED'
+
+export type AdminAuditEntry = {
+  id: string
+  actorId: string
+  action: AdminAuditAction
+  targetId: string
+  detail: string
+  occurredAt: string
+}
+
 export type DashboardSummary = {
   detailedFinancialSummary: {
     totalBalance: number
@@ -686,4 +755,69 @@ export function changePassword(newPassword: string) {
 
 export function suspendUser() {
   return request<void>('/api/v1/users/me', { method: 'DELETE' })
+}
+
+export function getAdminDashboard(from: string, to: string) {
+  const query = new URLSearchParams({ from, to })
+  return request<AdminDashboard>(`/api/v1/admin/dashboard?${query}`)
+}
+
+export function getAdminUsers(params: {
+  search: string
+  status: AdminUserStatus | ''
+  page: number
+  size: number
+}) {
+  const query = new URLSearchParams({ page: String(params.page), size: String(params.size) })
+  if (params.search) query.set('search', params.search)
+  if (params.status) query.set('status', params.status)
+  return request<AdminPage<AdminUser>>(`/api/v1/admin/users?${query}`)
+}
+
+export function getAdminUser(id: string) {
+  return request<AdminUser>(`/api/v1/admin/users/${encodeURIComponent(id)}`)
+}
+
+export function updateAdminUserStatus(id: string, status: 'ACTIVO' | 'SUSPENDIDO', reason: string) {
+  return request<AdminUser>(`/api/v1/admin/users/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, reason }),
+  })
+}
+
+export function getAdminCategories() {
+  return request<AdminCategory[]>('/api/v1/admin/categories')
+}
+
+export function createAdminCategory(payload: { name: string; type: AdminCategory['type'] }) {
+  return request<AdminCategory>('/api/v1/admin/categories', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function renameAdminCategory(id: string, name: string) {
+  return request<AdminCategory>(`/api/v1/admin/categories/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function updateAdminCategoryStatus(id: string, active: boolean) {
+  return request<AdminCategory>(`/api/v1/admin/categories/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ active }),
+  })
+}
+
+export function getAdminAudit(params: {
+  actorId: string
+  action: AdminAuditAction | ''
+  page: number
+  size: number
+}) {
+  const query = new URLSearchParams({ page: String(params.page), size: String(params.size) })
+  if (params.actorId) query.set('actorId', params.actorId)
+  if (params.action) query.set('action', params.action)
+  return request<AdminPage<AdminAuditEntry>>(`/api/v1/admin/audit?${query}`)
 }

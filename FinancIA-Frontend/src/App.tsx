@@ -18,7 +18,10 @@ import { DashboardView } from './pages/DashboardView'
 import { GestionView } from './pages/GestionView'
 import { MetasView } from './pages/MetasView'
 import { MovimientosView } from './pages/MovimientosView'
+import { AdminView } from './pages/AdminView'
 import type { ModalState, ViewId } from './types'
+
+const adminViews: ViewId[] = ['admin-dashboard', 'admin-users', 'admin-categories', 'admin-audit']
 
 function App() {
   const [token, setToken] = useState<string | null>(() => getToken())
@@ -92,10 +95,15 @@ function App() {
     return <AuthView onAuthenticated={authenticate} />
   }
 
+  const isAdmin = user?.role.toUpperCase() === 'ADMIN'
+  const visibleView = isAdmin
+    ? adminViews.includes(activeView) ? activeView : 'admin-dashboard'
+    : adminViews.includes(activeView) ? 'inicio' : activeView
+
   return (
     <div className="app-shell">
       <Sidebar
-        activeView={activeView}
+        activeView={visibleView}
         onChangeView={setActiveView}
         onNewConsultation={() => setModal({ type: 'consultation' })}
         onLogout={logout}
@@ -107,11 +115,17 @@ function App() {
 
       <main className="content-panel">
         {userError && <div className="auth-feedback error" role="alert">{userError}</div>}
-        {activeView === 'inicio' && <DashboardView userName={user?.name} onOpenDetails={openDetails} />}
-        {activeView === 'movimientos' && <MovimientosView onOpenDetails={openDetails} />}
-        {activeView === 'asistente' && <AsistenteView />}
-        {activeView === 'metas' && <MetasView onOpenDetails={openDetails} />}
-        {activeView === 'gestion' && <GestionView onOpenDetails={openDetails} />}
+        {isAdmin ? (
+          <AdminView activeView={visibleView} />
+        ) : (
+          <>
+            {visibleView === 'inicio' && <DashboardView userName={user?.name} onOpenDetails={openDetails} />}
+            {visibleView === 'movimientos' && <MovimientosView onOpenDetails={openDetails} />}
+            {visibleView === 'asistente' && <AsistenteView />}
+            {visibleView === 'metas' && <MetasView onOpenDetails={openDetails} />}
+            {visibleView === 'gestion' && <GestionView onOpenDetails={openDetails} />}
+          </>
+        )}
       </main>
 
       {modal?.type === 'consultation' && (
