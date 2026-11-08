@@ -112,7 +112,7 @@ export type Movement = {
   }
   amount: number
   description: string
-  dateIssue: string
+  dateIssue: string | null
   receiptUrl: string | null
 }
 
