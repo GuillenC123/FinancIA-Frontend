@@ -138,7 +138,7 @@ export function MovimientosView({ onOpenDetails }: {
     const kind = movementKind(movement.category.type)
     const matchesType = filter === 'all' || kind === filter
     const matchesAccount = account === 'all' || movement.account.id === account
-    const matchesMonth = month === 'all' || movement.dateIssue.slice(0, 7) === month
+    const matchesMonth = month === 'all' || movement.dateIssue?.slice(0, 7) === month
     return matchesType && matchesAccount && matchesMonth
   })
 
