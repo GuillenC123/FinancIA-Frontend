@@ -56,11 +56,23 @@ function initialPeriod() {
   return { from: localDate(new Date(today.getFullYear(), today.getMonth(), 1)), to: localDate(today) }
 }
 
-function periodError(from: string, to: string) {
+function currentDateInTimeZone(timeZone: string) {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const values = new Map(parts.map(({ type, value }) => [type, value]))
+  return `${values.get('year')}-${values.get('month')}-${values.get('day')}`
+}
+
+function periodError(from: string, to: string, timeZone: string) {
   if (!from || !to) return 'Selecciona ambas fechas para consultar el periodo.'
   const start = Date.parse(`${from}T00:00:00Z`)
   const end = Date.parse(`${to}T00:00:00Z`)
-  const today = Date.parse(`${localDate(new Date())}T00:00:00Z`)
+  const todayValue = timeZone ? currentDateInTimeZone(timeZone) : localDate(new Date())
+  const today = Date.parse(`${todayValue}T00:00:00Z`)
   if (!Number.isFinite(start) || !Number.isFinite(end)) return 'Ingresa fechas válidas.'
   if (start > end) return 'La fecha inicial no puede ser posterior a la fecha final.'
   if (end > today) return 'El periodo no puede incluir fechas futuras.'
@@ -148,17 +160,22 @@ export function AdminView({ activeView }: { activeView: ViewId }) {
 
 function DashboardSection() {
   const [period, setPeriod] = useState(initialPeriod)
-  const [appliedPeriod, setAppliedPeriod] = useState(period)
+  const [appliedPeriod, setAppliedPeriod] = useState<{ from: string; to: string } | null>(null)
   const [dashboard, setDashboard] = useState<AdminDashboard | null>(null)
+  const [timeZone, setTimeZone] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const validationError = periodError(period.from, period.to)
+  const validationError = periodError(period.from, period.to, timeZone)
 
   useEffect(() => {
     let cancelled = false
-    getAdminDashboard(appliedPeriod.from, appliedPeriod.to)
+    getAdminDashboard(appliedPeriod?.from, appliedPeriod?.to)
       .then((result) => {
-        if (!cancelled) setDashboard(result)
+        if (!cancelled) {
+          setDashboard(result)
+          setPeriod(result.period)
+          setTimeZone(result.timeZone)
+        }
       })
       .catch((requestError: unknown) => {
         if (!cancelled) setError(errorText(requestError))
@@ -191,11 +208,11 @@ function DashboardSection() {
         <form className="admin-period-form" onSubmit={submitPeriod}>
           <label>
             <span>Desde</span>
-            <input type="date" value={period.from} max={localDate(new Date())} onChange={(event) => setPeriod({ ...period, from: event.target.value })} />
+            <input type="date" value={period.from} max={timeZone ? currentDateInTimeZone(timeZone) : localDate(new Date())} onChange={(event) => setPeriod({ ...period, from: event.target.value })} />
           </label>
           <label>
             <span>Hasta</span>
-            <input type="date" value={period.to} max={localDate(new Date())} onChange={(event) => setPeriod({ ...period, to: event.target.value })} />
+            <input type="date" value={period.to} max={timeZone ? currentDateInTimeZone(timeZone) : localDate(new Date())} onChange={(event) => setPeriod({ ...period, to: event.target.value })} />
           </label>
           <button className="primary-button admin-submit" type="submit" disabled={Boolean(validationError) || loading}>
             <RefreshCw size={16} aria-hidden="true" /> Actualizar

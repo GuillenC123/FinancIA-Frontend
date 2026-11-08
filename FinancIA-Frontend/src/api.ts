@@ -757,9 +757,12 @@ export function suspendUser() {
   return request<void>('/api/v1/users/me', { method: 'DELETE' })
 }
 
-export function getAdminDashboard(from: string, to: string) {
-  const query = new URLSearchParams({ from, to })
-  return request<AdminDashboard>(`/api/v1/admin/dashboard?${query}`)
+export function getAdminDashboard(from?: string, to?: string) {
+  const query = new URLSearchParams()
+  if (from) query.set('from', from)
+  if (to) query.set('to', to)
+  const suffix = query.size > 0 ? `?${query}` : ''
+  return request<AdminDashboard>(`/api/v1/admin/dashboard${suffix}`)
 }
 
 export function getAdminUsers(params: {

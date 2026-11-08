@@ -2124,6 +2124,29 @@
   font-size: 0.75rem;
 }
 
+.profile-gate {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px;
+  background: var(--ground);
+  color: var(--ink);
+}
+
+.profile-gate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(100%, 520px);
+  padding: 24px;
+}
+
+.profile-gate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 /* ─── Asistente ──────────────────────────────────────────── */
 
 .quick-questions h3 {

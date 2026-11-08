@@ -30,6 +30,8 @@ function App() {
   const [toast, setToast] = useState('')
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [userError, setUserError] = useState('')
+  const [profileLoading, setProfileLoading] = useState(() => Boolean(getToken()))
+  const [profileRetry, setProfileRetry] = useState(0)
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(() => getTwoFactorEnabled())
 
   useEffect(() => {
@@ -54,11 +56,14 @@ function App() {
         }
         setUserError(requestError instanceof Error ? requestError.message : 'No se pudo cargar el perfil.')
       })
+      .finally(() => {
+        if (!cancelled) setProfileLoading(false)
+      })
 
     return () => {
       cancelled = true
     }
-  }, [token])
+  }, [token, profileRetry])
 
   const showToast = (message: string) => {
     setToast(message)
@@ -71,7 +76,9 @@ function App() {
 
   const authenticate = (newToken: string) => {
     setToken(newToken)
+    setUser(null)
     setUserError('')
+    setProfileLoading(true)
     setTwoFactorEnabled(getTwoFactorEnabled())
   }
 
@@ -80,6 +87,7 @@ function App() {
     setToken(null)
     setUser(null)
     setUserError('')
+    setProfileLoading(false)
     setTwoFactorEnabled(false)
     setActiveView('inicio')
   }
@@ -93,6 +101,32 @@ function App() {
 
   if (!token) {
     return <AuthView onAuthenticated={authenticate} />
+  }
+
+  if (profileLoading) {
+    return (
+      <main className="profile-gate">
+        <div className="panel-card profile-gate-card" role="status">Cargando tu perfil…</div>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return (
+      <main className="profile-gate">
+        <section className="panel-card profile-gate-card">
+          <div className="auth-feedback error" role="alert">{userError || 'No se pudo determinar el rol de esta cuenta.'}</div>
+          <div className="profile-gate-actions">
+            <button className="secondary-button" type="button" onClick={() => {
+              setUserError('')
+              setProfileLoading(true)
+              setProfileRetry((attempt) => attempt + 1)
+            }}>Reintentar</button>
+            <button className="primary-button" type="button" onClick={logout}>Cerrar sesión</button>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   const isAdmin = user?.role.toUpperCase() === 'ADMIN'
