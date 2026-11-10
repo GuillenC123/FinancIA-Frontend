@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeftRight,
+  BarChart3,
+  ClipboardList,
   ChevronsUpDown,
   House,
   LogOut,
@@ -8,11 +10,14 @@ import {
   Plus,
   ShieldCheck,
   ShieldPlus,
+  Tags,
   Target,
+  Users,
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import type { CurrentUser } from '../api'
+import { adminNavigationItems } from '../adminNavigation'
 import { navigationItems } from '../data'
 import type { ViewId } from '../types'
 
@@ -22,6 +27,10 @@ const navIcons: Record<ViewId, LucideIcon> = {
   metas: Target,
   gestion: Wrench,
   asistente: MessagesSquare,
+  'admin-dashboard': BarChart3,
+  'admin-users': Users,
+  'admin-categories': Tags,
+  'admin-audit': ClipboardList,
 }
 
 type SidebarProps = {
@@ -47,6 +56,8 @@ export function Sidebar({
 }: SidebarProps) {
   const fullName = user ? `${user.name} ${user.lastName}` : 'Mi Perfil'
   const initial = user?.name.charAt(0).toUpperCase() ?? 'A'
+  const isAdmin = user?.role.toUpperCase() === 'ADMIN'
+  const items = isAdmin ? adminNavigationItems : navigationItems
   const [menuOpen, setMenuOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
@@ -74,17 +85,19 @@ export function Sidebar({
         <div className="brand-mark" aria-hidden="true">F</div>
         <div>
           <h1>FinancIA</h1>
-          <p>Tu asistente financiero</p>
+          <p>{isAdmin ? 'Panel administrativo' : 'Tu asistente financiero'}</p>
         </div>
       </div>
 
-      <button className="primary-button" type="button" onClick={onNewConsultation}>
-        <Plus size={18} strokeWidth={2} aria-hidden="true" />
-        <span className="button-label">Nueva consulta</span>
-      </button>
+      {!isAdmin && (
+        <button className="primary-button" type="button" onClick={onNewConsultation}>
+          <Plus size={18} strokeWidth={2} aria-hidden="true" />
+          <span className="button-label">Nueva consulta</span>
+        </button>
+      )}
 
-      <nav className="nav-list" aria-label="Navegación principal">
-        {navigationItems.map((item) => {
+      <nav className={`nav-list ${isAdmin ? 'admin-nav' : ''}`} aria-label={isAdmin ? 'Navegación administrativa' : 'Navegación principal'}>
+        {items.map((item) => {
           const Icon = navIcons[item.id]
           return (
             <button
