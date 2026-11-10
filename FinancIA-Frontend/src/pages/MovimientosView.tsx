@@ -157,7 +157,9 @@ export function MovimientosView({ onOpenDetails }: {
     event.preventDefault()
     const form = event.currentTarget
     const values = new FormData(form)
-    const category = categories.find((item) => item.id === selectedCategory)
+    // Igual que el <select>: si el usuario no cambió la opción, se usa la primera categoría mostrada.
+    const categoryId = selectedCategory || categories[0]?.id
+    const category = categories.find((item) => item.id === categoryId)
     if (!category) {
       setMutationError('Selecciona una categoría válida.')
       return
